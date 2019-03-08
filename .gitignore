@@ -1,6 +1,7 @@
 # Compiled class file
 *.class
 target/
+sootOutput/
 
 # Log file
 *.log
@@ -26,4 +27,4 @@ target/
 hs_err_pid*
 
 # android platforms
-/src/main/resources/android-platforms/
+src/main/resources/android-platforms/
