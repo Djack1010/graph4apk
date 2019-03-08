@@ -4,22 +4,27 @@ import soot.toolkits.graph.BriefUnitGraph;
 import soot.toolkits.graph.UnitGraph;
 import soot.toolkits.graph.pdg.ProgramDependenceGraph;
 import soot.toolkits.graph.pdg.HashMutablePDG;
+import soot.toolkits.scalar.SimpleLiveLocals;
+import soot.toolkits.scalar.SimpleLocalUses;
+import soot.toolkits.scalar.SmartLocalDefs;
+import soot.toolkits.scalar.UnitValueBoxPair;
 import soot.util.cfgcmd.CFGToDotGraph;
 import soot.util.dot.DotGraph;
 import utility.PDGToDotGraph;
 
 import java.io.File;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public class createPDG {
 
     //PATHs
-    static String outputPath="/home/giacomo/IdeaProjects/graph4apk/results";
+    private static String outputPath="/home/giacomo/IdeaProjects/graph4apk/results";
 
     //TEST, set to 0 for analyze all classes and methods
-    static int MAX_TEST_CLAS = 3;
-    static int MAX_TEST_METH = 3;
+    private static int MAX_TEST_CLAS = 3;
+    private static int MAX_TEST_METH = 3;
 
     public static void main(String [] args) {
 
@@ -120,6 +125,9 @@ public class createPDG {
                         checkAndCreateFolder(outputPath + "/graphs/CFGs");
                         CFGdotGraph.plot(outputPath + "/graphs/CFGs/" + cl.getName() + "_" + m.getName() + ".dot");
 
+                        System.out.println("\t\t\t\tDEF-USE CHAIN:");
+                        createPDGDataEdge(cfg);
+
                         System.out.print("\t\t\tGENERATING PDG...");
                         ProgramDependenceGraph pdg = new HashMutablePDG(cfg);
                         System.out.println("SUCCESS!");
@@ -150,6 +158,28 @@ public class createPDG {
             directory.mkdirs();
         }
     }
+
+    private static void createPDGDataEdge(UnitGraph graph){
+        SimpleLiveLocals s = new SimpleLiveLocals(graph);
+        Iterator<Unit> gIt = graph.iterator();
+        // generate du-pairs
+        while (gIt.hasNext()) {
+
+            Unit defUnit = gIt.next();
+            SmartLocalDefs des = new SmartLocalDefs(graph, s); // defs of local variables
+            SimpleLocalUses uses = new SimpleLocalUses(graph, des);
+
+            List<UnitValueBoxPair> ul = uses.getUsesOf(defUnit);
+            if (ul != null && ul.size() != 0) {
+                Iterator<UnitValueBoxPair> iteraBoxPair=ul.iterator();
+                while(iteraBoxPair.hasNext()) {
+                    Unit useUnit = iteraBoxPair.next().getUnit();
+                    System.err.println("\t\t\t\t\tDEF: " + defUnit.toString() + " USE: " + useUnit.toString());
+                }
+            }
+        }
+    }
+
 
 }
 
