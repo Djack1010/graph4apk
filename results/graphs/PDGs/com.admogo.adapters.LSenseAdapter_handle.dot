@@ -1,0 +1,6 @@
+digraph "handle" {
+    node [shape=record];
+    "REGION: 0" [shape=diamond,];
+    "CFGNODE: Block #1" [label="{{ CFGNODE| Block 1}|return}",];
+    "REGION: 0"->"CFGNODE: Block #1";
+}

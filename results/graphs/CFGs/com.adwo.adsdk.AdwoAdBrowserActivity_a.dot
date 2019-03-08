@@ -1,0 +1,9 @@
+digraph "void a(boolean)" {
+    label="void a(boolean)";
+    node [shape=box];
+    "0" [style=filled,fillcolor=gray,label="$z0 := @parameter0",];
+    "1" [label="com.adwo.adsdk.AdwoAdBrowserActivity.c = 1",];
+    "0"->"1";
+    "2" [style=filled,fillcolor=lightgray,label="return",];
+    "1"->"2";
+}

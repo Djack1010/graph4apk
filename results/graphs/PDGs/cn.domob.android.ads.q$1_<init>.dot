@@ -1,0 +1,6 @@
+digraph "<init>" {
+    node [shape=record];
+    "REGION: 0" [shape=diamond,];
+    "CFGNODE: Block #0" [label="{{ CFGNODE| Block 0}|$r0 := @this: cn.domob.android.ads.q$1|$r1 := @parameter0: cn.domob.android.ads.q|$r2 := @parameter1: cn.domob.android.ads.q$a|$r0.\<cn.domob.android.ads.q$1: cn.domob.android.ads.q b\> = $r1|$r0.\<cn.domob.android.ads.q$1: cn.domob.android.ads.q$a a\> = $r2|specialinvoke $r0.\<java.lang.Thread: void \<init\>()\>()|return}",];
+    "REGION: 0"->"CFGNODE: Block #0";
+}

@@ -1,0 +1,15 @@
+digraph "void <clinit>()" {
+    label="void <clinit>()";
+    node [shape=box];
+    "0" [style=filled,fillcolor=gray,label="$r0 = newarray (java.lang.String)[3]",];
+    "1" [label="$r0[0] = \"explode\"",];
+    "0"->"1";
+    "2" [label="$r0[1] = \"toptobottom\"",];
+    "1"->"2";
+    "3" [label="$r0[2] = \"bottomtotop\"",];
+    "2"->"3";
+    "4" [label="com.adwo.adsdk.AdwoAdBrowserActivity.b = $r0",];
+    "3"->"4";
+    "5" [style=filled,fillcolor=lightgray,label="return",];
+    "4"->"5";
+}
