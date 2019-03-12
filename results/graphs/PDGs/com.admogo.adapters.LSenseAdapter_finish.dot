@@ -1,6 +1,0 @@
-digraph "finish" {
-    node [shape=record];
-    "REGION: 0" [shape=diamond,];
-    "CFGNODE: Block #0" [label="{{ CFGNODE| Block 0}|$r0 := @this: com.admogo.adapters.LSenseAdapter|staticinvoke \<android.util.Log: int d(java.lang.String,java.lang.String)\>(\"AdsMOGO SDK\", \"LSense Finished\")|return}",];
-    "REGION: 0"->"CFGNODE: Block #0";
-}

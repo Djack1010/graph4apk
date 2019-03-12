@@ -1,6 +1,0 @@
-digraph "a" {
-    node [shape=record];
-    "REGION: 0" [shape=diamond,];
-    "CFGNODE: Block #0" [label="{{ CFGNODE| Block 0}|$z0 := @parameter0: boolean|\<com.adwo.adsdk.AdwoAdBrowserActivity: boolean c\> = 1|return}",];
-    "REGION: 0"->"CFGNODE: Block #0";
-}

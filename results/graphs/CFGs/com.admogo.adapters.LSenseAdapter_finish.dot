@@ -1,9 +1,0 @@
-digraph "void finish()" {
-    label="void finish()";
-    node [shape=box];
-    "0" [style=filled,fillcolor=gray,label="$r0 := @this",];
-    "1" [label="android.util.Log.d(\"AdsMOGO SDK\", \"LSense Finished\")",];
-    "0"->"1";
-    "2" [style=filled,fillcolor=lightgray,label="return",];
-    "1"->"2";
-}
