@@ -1,6 +1,5 @@
 package completePDG;
 
-import soot.Body;
 import soot.Unit;
 import soot.toolkits.graph.Block;
 import soot.toolkits.graph.UnitGraph;
@@ -41,7 +40,9 @@ public class cPDG {
     }
 
     private void createcPDG(){
-        createCFG(this.unitGraph.getHeads().get(0), this.cPDGNodes.get(0));
+        for (int i = 0; i < this.unitGraph.getHeads().size() ; i++){
+            createCFG(this.unitGraph.getHeads().get(i), this.cPDGNodes.get(0));
+        }
         createPDGDataEdges();
         createPDGControlEdges();
     }

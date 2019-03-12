@@ -5,9 +5,6 @@ import soot.toolkits.graph.BriefUnitGraph;
 import soot.toolkits.graph.UnitGraph;
 import soot.toolkits.graph.pdg.ProgramDependenceGraph;
 import soot.toolkits.graph.pdg.HashMutablePDG;
-import soot.toolkits.scalar.SimpleLiveLocals;
-import soot.toolkits.scalar.SimpleLocalUses;
-import soot.toolkits.scalar.SmartLocalDefs;
 import soot.toolkits.scalar.UnitValueBoxPair;
 import soot.util.cfgcmd.CFGToDotGraph;
 import soot.util.dot.DotGraph;
@@ -29,8 +26,8 @@ public class createPDG {
     //TEST, set to 0 for analyze all classes and methods
     private static int MAX_TEST_CLASS = 0;
     private static int MAX_TEST_METH = 0;
-    private static String CLASS_TO_TEST = "com.adwo.adsdk.AdwoAdBrowserActivity";
-    private static String METH_TO_TEST = "onKeyDown";
+    private static String CLASS_TO_TEST = ""; //"com.adwo.adsdk.AdwoAdBrowserActivity";
+    private static String METH_TO_TEST = ""; //"onKeyDown";
 
     public static void main(String [] args) {
 
@@ -146,27 +143,25 @@ public class createPDG {
                         //Represents a CFG where the nodes are Unit instances,
                         // and where no edges are included to account for control flow associated with exceptions.
                         //TODO: move to better CFG to handle exceptions (see ExceptionalUnitGraph or TrapUnitGraph)
-                        //System.out.print("\t\t\tGENERATING CFG...");
+                        System.out.print("\t\t\tGENERATING CFG...");
                         UnitGraph cfg = new BriefUnitGraph(body);
-                        /**
+                        ///**
                         System.out.println("SUCCESS!");
-                        System.out.println("\t\t\t\tPrinting CFG on file");
                         CFGToDotGraph cfgToDot = new CFGToDotGraph();
                         DotGraph CFGdotGraph = cfgToDot.drawCFG(cfg, body);
                         checkAndCreateFolder(outputPath + "/graphs/CFGs");
                         CFGdotGraph.plot(outputPath + "/graphs/CFGs/" + cl.getName() + "_" + m.getName() + ".dot");
-                        **/
+                        //**/
 
+                        System.out.print("\t\t\tGENERATING cPDG...");
                         cPDG cPDG = new cPDG(cfg, cl.getName() + "_" + m.getName());
+                        System.out.println("SUCCESS!");
                         cPDGToDotGraph cpdgToDot = new cPDGToDotGraph(cPDG.getRootNode(),cPDG.getName());
                         DotGraph cPDGdotGraph = cpdgToDot.drawcPDG();
                         checkAndCreateFolder(outputPath + "/graphs/cPDGs");
                         cPDGdotGraph.plot(outputPath + "/graphs/cPDGs/" + cPDG.getName() + ".dot");
 
                         //cPDG.printcPDG(cPDG.getRootNode());
-
-                        //System.out.println("\t\t\t\tDEF-USE CHAIN:");
-                        //createPDGDataEdge(cfg);
 
                         /**
                         System.out.print("\t\t\tGENERATING PDG...");
