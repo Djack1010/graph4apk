@@ -1,3 +1,4 @@
+import completePDG.cPDG;
 import soot.*;
 import soot.options.Options;
 import soot.toolkits.graph.BriefUnitGraph;
@@ -11,8 +12,11 @@ import soot.toolkits.scalar.UnitValueBoxPair;
 import soot.util.cfgcmd.CFGToDotGraph;
 import soot.util.dot.DotGraph;
 import utility.PDGToDotGraph;
+import utility.cPDGToDotGraph;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -23,8 +27,10 @@ public class createPDG {
     private static String outputPath="/home/giacomo/IdeaProjects/graph4apk/results";
 
     //TEST, set to 0 for analyze all classes and methods
-    private static int MAX_TEST_CLAS = 3;
-    private static int MAX_TEST_METH = 3;
+    private static int MAX_TEST_CLASS = 0;
+    private static int MAX_TEST_METH = 0;
+    private static String CLASS_TO_TEST = "com.adwo.adsdk.AdwoAdBrowserActivity";
+    private static String METH_TO_TEST = "onKeyDown";
 
     public static void main(String [] args) {
 
@@ -88,8 +94,11 @@ public class createPDG {
 
                 for (SootClass cl : Scene.v().getApplicationClasses()) {
 
+                    if(!CLASS_TO_TEST.equals("") && !cl.getName().equals(CLASS_TO_TEST))
+                        continue;
+
                     int numTestMeth=0;
-                    if(MAX_TEST_CLAS != 0 && numTestClas >= MAX_TEST_CLAS)
+                    if(MAX_TEST_CLASS != 0 && numTestClas >= MAX_TEST_CLASS)
                         break;
                     else
                         numTestClas++;
@@ -99,10 +108,14 @@ public class createPDG {
                     Iterator<SootMethod> methodIt = cl.getMethods().iterator();
                     while (methodIt.hasNext()) {
 
+                        SootMethod m = methodIt.next();
+
+                        if(!METH_TO_TEST.equals("") && !m.getName().equals(METH_TO_TEST))
+                            continue;
+
                         if(MAX_TEST_METH != 0 && numTestMeth >= MAX_TEST_METH)
                             break;
 
-                        SootMethod m = methodIt.next();
                         System.out.println("\t\tmethod " + m.getName());
 
                         if (!(m.hasActiveBody())) {
@@ -113,21 +126,49 @@ public class createPDG {
                         Body body = m.retrieveActiveBody();
                         numTestMeth++;
 
+                        //Print Jimple code of Body method on file
+                        /**
+                        StringWriter sw = new StringWriter();
+                        PrintWriter pw = new PrintWriter(sw);
+                        Printer.v().printTo(body, pw);
+                        String inputString = "public class WrapClass \n{\n" + sw.toString() + "}";
+                        try{
+                            checkAndCreateFolder(outputPath + "/graphs/JimpleCode");
+                            PrintWriter out = new PrintWriter(outputPath + "/graphs/JimpleCode/"
+                                    + cl.getName() + "_" + m.getName() +".txt", "UTF-8");
+                            out.println(inputString);
+                            out.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                         **/
+
                         //Represents a CFG where the nodes are Unit instances,
                         // and where no edges are included to account for control flow associated with exceptions.
                         //TODO: move to better CFG to handle exceptions (see ExceptionalUnitGraph or TrapUnitGraph)
-                        System.out.print("\t\t\tGENERATING CFG...");
+                        //System.out.print("\t\t\tGENERATING CFG...");
                         UnitGraph cfg = new BriefUnitGraph(body);
+                        /**
                         System.out.println("SUCCESS!");
                         System.out.println("\t\t\t\tPrinting CFG on file");
                         CFGToDotGraph cfgToDot = new CFGToDotGraph();
                         DotGraph CFGdotGraph = cfgToDot.drawCFG(cfg, body);
                         checkAndCreateFolder(outputPath + "/graphs/CFGs");
                         CFGdotGraph.plot(outputPath + "/graphs/CFGs/" + cl.getName() + "_" + m.getName() + ".dot");
+                        **/
 
-                        System.out.println("\t\t\t\tDEF-USE CHAIN:");
-                        createPDGDataEdge(cfg);
+                        cPDG cPDG = new cPDG(cfg, cl.getName() + "_" + m.getName());
+                        cPDGToDotGraph cpdgToDot = new cPDGToDotGraph(cPDG.getRootNode(),cPDG.getName());
+                        DotGraph cPDGdotGraph = cpdgToDot.drawcPDG();
+                        checkAndCreateFolder(outputPath + "/graphs/cPDGs");
+                        cPDGdotGraph.plot(outputPath + "/graphs/cPDGs/" + cPDG.getName() + ".dot");
 
+                        //cPDG.printcPDG(cPDG.getRootNode());
+
+                        //System.out.println("\t\t\t\tDEF-USE CHAIN:");
+                        //createPDGDataEdge(cfg);
+
+                        /**
                         System.out.print("\t\t\tGENERATING PDG...");
                         ProgramDependenceGraph pdg = new HashMutablePDG(cfg);
                         System.out.println("SUCCESS!");
@@ -137,8 +178,7 @@ public class createPDG {
                         DotGraph PDGdotGraph = pdgToDot.drawPDG();
                         checkAndCreateFolder(outputPath + "/graphs/PDGs");
                         PDGdotGraph.plot(outputPath + "/graphs/PDGs/" + cl.getName() + "_" + m.getName() + ".dot");
-
-                        //TODO: Aggiungere def-use chain per completare il PDG
+                         **/
 
                     }
 
@@ -158,28 +198,6 @@ public class createPDG {
             directory.mkdirs();
         }
     }
-
-    private static void createPDGDataEdge(UnitGraph graph){
-        SimpleLiveLocals s = new SimpleLiveLocals(graph);
-        Iterator<Unit> gIt = graph.iterator();
-        // generate du-pairs
-        while (gIt.hasNext()) {
-
-            Unit defUnit = gIt.next();
-            SmartLocalDefs des = new SmartLocalDefs(graph, s); // defs of local variables
-            SimpleLocalUses uses = new SimpleLocalUses(graph, des);
-
-            List<UnitValueBoxPair> ul = uses.getUsesOf(defUnit);
-            if (ul != null && ul.size() != 0) {
-                Iterator<UnitValueBoxPair> iteraBoxPair=ul.iterator();
-                while(iteraBoxPair.hasNext()) {
-                    Unit useUnit = iteraBoxPair.next().getUnit();
-                    System.err.println("\t\t\t\t\tDEF: " + defUnit.toString() + " USE: " + useUnit.toString());
-                }
-            }
-        }
-    }
-
 
 }
 

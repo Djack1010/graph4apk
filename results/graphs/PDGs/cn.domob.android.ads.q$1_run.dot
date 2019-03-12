@@ -7,16 +7,7 @@ digraph "run" {
     "CFGNODE: Block #0"->"REGION: 1";
     "REGION: 3" [shape=diamond,];
     "CFGNODE: Block #0"->"REGION: 3";
-    "CFGNODE: Block #1" [label="{{ CFGNODE| Block 1}|$z0 = staticinvoke \<android.util.Log: boolean isLoggable(java.lang.String,int)\>(\"DomobSDK\", 3)|if $z0 == 0 goto return}",];
-    "REGION: 1"->"CFGNODE: Block #1";
-    "REGION: 2" [shape=diamond,];
-    "CFGNODE: Block #1"->"REGION: 2";
     "REGION: 5" [shape=diamond,];
-    "CFGNODE: Block #1"->"REGION: 5";
-    "CFGNODE: Block #2" [label="{{ CFGNODE| Block 2}|$r7 = new java.lang.StringBuilder|specialinvoke $r7.\<java.lang.StringBuilder: void \<init\>()\>()|$r7 = virtualinvoke $r7.\<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)\>(\"send report:\")|$r1 = $r0.\<cn.domob.android.ads.q$1: cn.domob.android.ads.q b\>|$r2 = $r0.\<cn.domob.android.ads.q$1: cn.domob.android.ads.q$a a\>|$i0 = $r2.\<cn.domob.android.ads.q$a: int a\>|$r4 = staticinvoke \<cn.domob.android.ads.q: java.lang.String a(cn.domob.android.ads.q,int)\>($r1, $i0)|$r7 = virtualinvoke $r7.\<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)\>($r4)|$r7 = virtualinvoke $r7.\<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)\>(\" success\")|$r4 = virtualinvoke $r7.\<java.lang.StringBuilder: java.lang.String toString()\>()|staticinvoke \<android.util.Log: int d(java.lang.String,java.lang.String)\>(\"DomobSDK\", $r4)|return}",];
-    "REGION: 2"->"CFGNODE: Block #2";
-    "CFGNODE: Block #5" [label="{{ CFGNODE| Block 5}|return}",];
-    "REGION: 5"->"CFGNODE: Block #5";
     "REGION: 3"->"REGION: 5";
     "CFGNODE: Block #3" [label="{{ CFGNODE| Block 3}|$z0 = staticinvoke \<android.util.Log: boolean isLoggable(java.lang.String,int)\>(\"DomobSDK\", 3)|if $z0 == 0 goto return}",];
     "REGION: 3"->"CFGNODE: Block #3";
@@ -24,4 +15,13 @@ digraph "run" {
     "CFGNODE: Block #3"->"REGION: 4";
     "CFGNODE: Block #4" [label="{{ CFGNODE| Block 4}|$r7 = new java.lang.StringBuilder|specialinvoke $r7.\<java.lang.StringBuilder: void \<init\>()\>()|$r7 = virtualinvoke $r7.\<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)\>(\"send report:\")|$r1 = $r0.\<cn.domob.android.ads.q$1: cn.domob.android.ads.q b\>|$r2 = $r0.\<cn.domob.android.ads.q$1: cn.domob.android.ads.q$a a\>|$i0 = $r2.\<cn.domob.android.ads.q$a: int a\>|$r4 = staticinvoke \<cn.domob.android.ads.q: java.lang.String a(cn.domob.android.ads.q,int)\>($r1, $i0)|$r7 = virtualinvoke $r7.\<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)\>($r4)|$r7 = virtualinvoke $r7.\<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)\>(\" failed\")|$r4 = virtualinvoke $r7.\<java.lang.StringBuilder: java.lang.String toString()\>()|staticinvoke \<android.util.Log: int d(java.lang.String,java.lang.String)\>(\"DomobSDK\", $r4)}",];
     "REGION: 4"->"CFGNODE: Block #4";
+    "CFGNODE: Block #5" [label="{{ CFGNODE| Block 5}|return}",];
+    "REGION: 5"->"CFGNODE: Block #5";
+    "CFGNODE: Block #1" [label="{{ CFGNODE| Block 1}|$z0 = staticinvoke \<android.util.Log: boolean isLoggable(java.lang.String,int)\>(\"DomobSDK\", 3)|if $z0 == 0 goto return}",];
+    "REGION: 1"->"CFGNODE: Block #1";
+    "REGION: 2" [shape=diamond,];
+    "CFGNODE: Block #1"->"REGION: 2";
+    "CFGNODE: Block #1"->"REGION: 5";
+    "CFGNODE: Block #2" [label="{{ CFGNODE| Block 2}|$r7 = new java.lang.StringBuilder|specialinvoke $r7.\<java.lang.StringBuilder: void \<init\>()\>()|$r7 = virtualinvoke $r7.\<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)\>(\"send report:\")|$r1 = $r0.\<cn.domob.android.ads.q$1: cn.domob.android.ads.q b\>|$r2 = $r0.\<cn.domob.android.ads.q$1: cn.domob.android.ads.q$a a\>|$i0 = $r2.\<cn.domob.android.ads.q$a: int a\>|$r4 = staticinvoke \<cn.domob.android.ads.q: java.lang.String a(cn.domob.android.ads.q,int)\>($r1, $i0)|$r7 = virtualinvoke $r7.\<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)\>($r4)|$r7 = virtualinvoke $r7.\<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)\>(\" success\")|$r4 = virtualinvoke $r7.\<java.lang.StringBuilder: java.lang.String toString()\>()|staticinvoke \<android.util.Log: int d(java.lang.String,java.lang.String)\>(\"DomobSDK\", $r4)|return}",];
+    "REGION: 2"->"CFGNODE: Block #2";
 }

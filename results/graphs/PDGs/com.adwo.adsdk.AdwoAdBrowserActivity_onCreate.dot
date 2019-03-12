@@ -19,8 +19,8 @@ digraph "onCreate" {
     "CFGNODE: Block #2"->"REGION: 2";
     "REGION: 3" [shape=diamond,];
     "CFGNODE: Block #2"->"REGION: 3";
-    "CFGNODE: Block #5" [label="{{ CFGNODE| Block 5}|$r5 = $r0.\<com.adwo.adsdk.AdwoAdBrowserActivity: com.adwo.adsdk.n a\>|virtualinvoke $r5.\<com.adwo.adsdk.n: void c(java.lang.String)\>(\"http://www.adwo.com\")|goto [?= virtualinvoke $r0.\<com.adwo.adsdk.AdwoAdBrowserActivity: void setRequestedOrientation(int)\>(1)]}",];
-    "REGION: 3"->"CFGNODE: Block #5";
     "CFGNODE: Block #3" [label="{{ CFGNODE| Block 3}|$r5 = $r0.\<com.adwo.adsdk.AdwoAdBrowserActivity: com.adwo.adsdk.n a\>|virtualinvoke $r5.\<com.adwo.adsdk.n: void c(java.lang.String)\>($r4)}",];
     "REGION: 2"->"CFGNODE: Block #3";
+    "CFGNODE: Block #5" [label="{{ CFGNODE| Block 5}|$r5 = $r0.\<com.adwo.adsdk.AdwoAdBrowserActivity: com.adwo.adsdk.n a\>|virtualinvoke $r5.\<com.adwo.adsdk.n: void c(java.lang.String)\>(\"http://www.adwo.com\")|goto [?= virtualinvoke $r0.\<com.adwo.adsdk.AdwoAdBrowserActivity: void setRequestedOrientation(int)\>(1)]}",];
+    "REGION: 3"->"CFGNODE: Block #5";
 }
