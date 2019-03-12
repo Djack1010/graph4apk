@@ -3,6 +3,9 @@
 target/
 sootOutput/
 
+# Results files
+results/
+
 # Log file
 *.log
 
