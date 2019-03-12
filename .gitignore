@@ -4,7 +4,9 @@ target/
 sootOutput/
 
 # Results files
-results/
+*.dot
+*.pdf
+*.txt
 
 # Log file
 *.log
