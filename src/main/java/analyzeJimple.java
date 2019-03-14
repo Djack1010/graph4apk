@@ -3,9 +3,8 @@ import soot.*;
 import soot.options.Options;
 import soot.toolkits.graph.BriefUnitGraph;
 import soot.toolkits.graph.UnitGraph;
-import soot.toolkits.graph.pdg.ProgramDependenceGraph;
 import soot.toolkits.graph.pdg.HashMutablePDG;
-import soot.toolkits.scalar.UnitValueBoxPair;
+import soot.toolkits.graph.pdg.ProgramDependenceGraph;
 import soot.util.cfgcmd.CFGToDotGraph;
 import soot.util.dot.DotGraph;
 import utility.PDGToDotGraph;
@@ -16,7 +15,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
 
-public class createPDG {
+public class analyzeJimple {
 
     //PATHs
     private static String outputPath="/home/giacomo/IdeaProjects/graph4apk/results";
@@ -26,7 +25,14 @@ public class createPDG {
     private static int MAX_TEST_METH = 0;
     private static String CLASS_TO_TEST = ""; //"com.adwo.adsdk.AdwoAdBrowserActivity";
     private static String METH_TO_TEST = ""; //"onKeyDown";
-    private static Set<String> METH_JAIL = new HashSet<>(Arrays.asList("com.admogo.DataBackup_getDataList"));
+    private static Set<String> METH_JAIL = new HashSet<>(Arrays.asList("")); //com.admogo.DataBackup_getDataList
+
+    /**
+     * Can read Jimple code from JimpleCode folder but the .jimple files needs to be consistent between filename and
+     * clas declaration (most of them are wrapped into a Foo class).
+     * To see and example, replace JimpleCode with JavaCode, put a .java in that folder (be sure that compiles correctly),
+     * then run soot and get the .jimple code to compare.
+     */
 
     public static void main(String [] args) {
 
@@ -58,25 +64,19 @@ public class createPDG {
                             //":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-5/android.jar" +
                             //":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-4/android.jar" +
                             //":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-3/android.jar" +
-                            ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-17/android.jar" +
-                            ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-17/android-17-api.jar",
-                    "-android-jars",
-                    "/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms",
+                            ":/home/giacomo/IdeaProjects/graph4apk/results/graphs/JimpleCode",
                     "-process-dir",
-                    "/home/giacomo/Documents/merc_proj/apk_test/0d4a16a36a62e4d9bc6e466729a55094.apk"
+                    "/home/giacomo/IdeaProjects/graph4apk/results/graphs/JimpleCode"
             };
         }
 
-
-
-        //prefer Android APK files// -src-prec apk
-        Options.v().set_src_prec(Options.src_prec_apk);
+        Options.v().set_src_prec(Options.src_prec_jimple);
 
         //output as APK, too//-f J
-        //Options.v().set_output_format(Options.output_format_dex);
+        Options.v().set_output_format(Options.output_format_jimple);
 
         // resolve the PrintStream and System soot-classes
-        Scene.v().addBasicClass("java.io.PrintStream",SootClass.SIGNATURES);
+        Scene.v().addBasicClass("java.io.PrintStream", SootClass.SIGNATURES);
         Scene.v().addBasicClass("java.lang.System", SootClass.SIGNATURES);
 
         PackManager.v().getPack("wjtp").add(new Transform("wjtp.myInstrumenter", new SceneTransformer() {
@@ -127,21 +127,6 @@ public class createPDG {
 
                         String fileName = cl.getName().replaceAll("\\$","")
                                 + "_" + m.getName().replaceAll("\\$","");
-
-                        //Print Jimple code of Body method on file
-                        StringWriter sw = new StringWriter();
-                        PrintWriter pw = new PrintWriter(sw);
-                        Printer.v().printTo(body, pw);
-                        //String inputString = "public class Foo extends java.lang.Object {\n" + sw.toString() + "}";
-                        try{
-                            checkAndCreateFolder(outputPath + "/graphs/JimpleCode");
-                            PrintWriter out = new PrintWriter(outputPath + "/graphs/JimpleCode/"
-                                    + fileName +".jimple", "UTF-8");
-                            out.println(sw.toString());
-                            out.close();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
 
                         //Represents a CFG where the nodes are Unit instances,
                         // and where no edges are included to account for control flow associated with exceptions.
@@ -198,4 +183,3 @@ public class createPDG {
     }
 
 }
-
