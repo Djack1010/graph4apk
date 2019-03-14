@@ -6,13 +6,13 @@ for Fold in $SCRIPTPATH/*; do
         cd $Fold
         for dotFile in $Fold/*.dot; do
             if [ -f $dotFile ]; then
-		#remove file format (substring after last dot)
+		        #remove file format (substring after last dot)
                 OUTPUT=${dotFile%.*}
                 if [ -f $OUTPUT.pdf ]; then
                     echo "Graph for $dotFile already exist!"
-                    dot -Tpdf $dotFile -o $OUTPUT.pdf
                 else
                     echo "Generating graph for $dotFile"
+                    #echo $dotFile >> $SCRIPTPATH/graphToPrint.txt
                     dot -Tpdf $dotFile -o $OUTPUT.pdf
                 fi
             fi
