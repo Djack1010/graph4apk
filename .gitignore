@@ -6,7 +6,7 @@ sootOutput/
 # Results files
 *.dot
 *.pdf
-*.txt
+*.jimple
 
 # Log file
 *.log
