@@ -17,6 +17,7 @@ public class cPDG {
     String cPDGname;
     cPDGNode rootNode;
     UnitGraph unitGraph;
+    Set<Unit> visitedStmt;
     Map<Integer,cPDGNode> cPDGNodes;
 
 
@@ -26,6 +27,7 @@ public class cPDG {
         this.cPDGname = name;
         this.unId = 2; //id 0 and 1 reserved for entry and exit node
         this.cPDGNodes = new TreeMap<Integer, cPDGNode>();
+        this.visitedStmt = new HashSet<Unit>();
 
         //create Entry and Exit Node
         this.cPDGNodes.put(0,new cPDGNode(0, "ENTRY_NODE", null));
@@ -48,16 +50,19 @@ public class cPDG {
     }
 
     private void createCFG(Unit unitNode, cPDGNode precNode){
+        if (this.visitedStmt.contains(unitNode)){//get into a code loop -> node already visited, only link with precnode
+            precNode.newEdgeOut(this.cPDGNodes.get(findcPDGNode(unitNode)), cPDGEdge.EdgeTypes.CONTROL_FLOW);
+            return;
+        } else
+            this.visitedStmt.add(unitNode);
         cPDGNode newNode = new cPDGNode(this.getUniqueID(), unitNode.toString(), unitNode);
         this.cPDGNodes.put(newNode.getId(),newNode);
         newNode.newEdgeIn(precNode, cPDGEdge.EdgeTypes.CONTROL_FLOW);
-        //System.err.println("creating " + newNode.getName());
         if(this.unitGraph.getSuccsOf(unitNode).isEmpty()){
             newNode.newEdgeOut(this.cPDGNodes.get(1), cPDGEdge.EdgeTypes.CONTROL_FLOW);
-            //System.err.println("edge " + newNode.getId() + " -> 1");
         }else{
+            int size = this.unitGraph.getSuccsOf(unitNode).size();
             for(Unit succNode: this.unitGraph.getSuccsOf(unitNode)){
-                //System.err.println("\tedge " + newNode.getId() + " -> " + succNode.toString());
                 createCFG(succNode, newNode);
             }
         }

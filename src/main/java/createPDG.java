@@ -14,9 +14,7 @@ import utility.cPDGToDotGraph;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class createPDG {
 
@@ -28,6 +26,7 @@ public class createPDG {
     private static int MAX_TEST_METH = 0;
     private static String CLASS_TO_TEST = ""; //"com.adwo.adsdk.AdwoAdBrowserActivity";
     private static String METH_TO_TEST = ""; //"onKeyDown";
+    private static Set<String> METH_JAIL = new HashSet<>(Arrays.asList("com.admogo.DataBackup_getDataList"));
 
     public static void main(String [] args) {
 
@@ -113,6 +112,9 @@ public class createPDG {
                         if(MAX_TEST_METH != 0 && numTestMeth >= MAX_TEST_METH)
                             break;
 
+                        if(METH_JAIL.contains(cl.getName() + "_" + m.getName()))
+                            continue;
+
                         System.out.println("\t\tmethod " + m.getName());
 
                         if (!(m.hasActiveBody())) {
@@ -123,8 +125,10 @@ public class createPDG {
                         Body body = m.retrieveActiveBody();
                         numTestMeth++;
 
+                        String fileName = cl.getName().replaceAll("\\$","")
+                                + "_" + m.getName().replaceAll("\\$","");
+
                         //Print Jimple code of Body method on file
-                        /**
                         StringWriter sw = new StringWriter();
                         PrintWriter pw = new PrintWriter(sw);
                         Printer.v().printTo(body, pw);
@@ -132,13 +136,12 @@ public class createPDG {
                         try{
                             checkAndCreateFolder(outputPath + "/graphs/JimpleCode");
                             PrintWriter out = new PrintWriter(outputPath + "/graphs/JimpleCode/"
-                                    + cl.getName() + "_" + m.getName() +".txt", "UTF-8");
+                                    + fileName +".txt", "UTF-8");
                             out.println(inputString);
                             out.close();
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                         **/
 
                         //Represents a CFG where the nodes are Unit instances,
                         // and where no edges are included to account for control flow associated with exceptions.
@@ -150,11 +153,11 @@ public class createPDG {
                         CFGToDotGraph cfgToDot = new CFGToDotGraph();
                         DotGraph CFGdotGraph = cfgToDot.drawCFG(cfg, body);
                         checkAndCreateFolder(outputPath + "/graphs/CFGs");
-                        CFGdotGraph.plot(outputPath + "/graphs/CFGs/" + cl.getName() + "_" + m.getName() + ".dot");
+                        CFGdotGraph.plot(outputPath + "/graphs/CFGs/" + fileName + ".dot");
                         //**/
 
                         System.out.print("\t\t\tGENERATING cPDG...");
-                        cPDG cPDG = new cPDG(cfg, cl.getName() + "_" + m.getName());
+                        cPDG cPDG = new cPDG(cfg, fileName);
                         System.out.println("SUCCESS!");
                         cPDGToDotGraph cpdgToDot = new cPDGToDotGraph(cPDG.getRootNode(),cPDG.getName());
                         DotGraph cPDGdotGraph = cpdgToDot.drawcPDG();
@@ -163,7 +166,7 @@ public class createPDG {
 
                         //cPDG.printcPDG(cPDG.getRootNode());
 
-                        /**
+
                         System.out.print("\t\t\tGENERATING PDG...");
                         ProgramDependenceGraph pdg = new HashMutablePDG(cfg);
                         System.out.println("SUCCESS!");
@@ -172,8 +175,8 @@ public class createPDG {
                         PDGToDotGraph pdgToDot = new PDGToDotGraph(pdg, m.getName());
                         DotGraph PDGdotGraph = pdgToDot.drawPDG();
                         checkAndCreateFolder(outputPath + "/graphs/PDGs");
-                        PDGdotGraph.plot(outputPath + "/graphs/PDGs/" + cl.getName() + "_" + m.getName() + ".dot");
-                         **/
+                        PDGdotGraph.plot(outputPath + "/graphs/PDGs/" + fileName + ".dot");
+
 
                     }
 

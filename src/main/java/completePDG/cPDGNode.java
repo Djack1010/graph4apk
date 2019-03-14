@@ -108,7 +108,10 @@ public class cPDGNode {
             return false;
         if (this.nodeId != other.getId())
             return false;
-        if (!this.unitNode.equals(other.getUnitNode()))
+        if(this.unitNode == null){
+            if (other.getUnitNode() != null)
+                return false;
+        } else if (!this.unitNode.equals(other.getUnitNode()))
             return false;
         return true;
     }
