@@ -1,7 +1,7 @@
 #!/bin/bash
 SCRIPTPATH=$PWD
 
-for Fold in $SCRIPTPATH/*; do
+for Fold in $SCRIPTPATH/../*; do
     if [ -d "${Fold}" ]; then
         cd $Fold
         for dotFile in $Fold/*.dot; do
