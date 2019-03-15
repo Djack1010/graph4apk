@@ -71,10 +71,6 @@ public class cPDGNode {
     return this.nodeId + "_" + this.content;
   }
 
-  public void setId(int id) {
-    this.nodeId = id;
-  }
-
   public boolean isVisited() {
     return this.visited;
   }

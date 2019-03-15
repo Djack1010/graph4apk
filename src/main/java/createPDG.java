@@ -24,8 +24,8 @@ public class createPDG {
   //TEST, set to 0 for analyze all classes and methods
   private static int MAX_TEST_CLASS = 0;
   private static int MAX_TEST_METH = 0;
-  private static String CLASS_TO_TEST = ""; //"com.adwo.adsdk.AdwoAdBrowserActivity";
-  private static String METH_TO_TEST = ""; //"onKeyDown";
+  private static String CLASS_TO_TEST = "cn.domob.android.ads.q1"; //"com.adwo.adsdk.AdwoAdBrowserActivity";
+  private static String METH_TO_TEST = "run"; //"onKeyDown";
   private static Set<String> METH_JAIL = new HashSet<>(Arrays.asList("com.admogo.DataBackup_getDataList"));
 
   public static void main(String[] args) {
@@ -89,7 +89,7 @@ public class createPDG {
 
         for (SootClass cl : Scene.v().getApplicationClasses()) {
 
-          if (!CLASS_TO_TEST.equals("") && !cl.getName().equals(CLASS_TO_TEST))
+          if (!CLASS_TO_TEST.equals("") && !cl.getName().replaceAll("\\$", "").equals(CLASS_TO_TEST))
             continue;
 
           int numTestMeth = 0;
@@ -105,13 +105,13 @@ public class createPDG {
 
             SootMethod m = methodIt.next();
 
-            if (!METH_TO_TEST.equals("") && !m.getName().equals(METH_TO_TEST))
+            if (!METH_TO_TEST.equals("") && !m.getName().replaceAll("\\$", "").equals(METH_TO_TEST))
               continue;
 
             if (MAX_TEST_METH != 0 && numTestMeth >= MAX_TEST_METH)
               break;
 
-            if (METH_JAIL.contains(cl.getName() + "_" + m.getName()))
+            if (METH_JAIL.contains(cl.getName().replaceAll("\\$", "") + "_" + m.getName().replaceAll("\\$", "")))
               continue;
 
             System.out.println("\t\tmethod " + m.getName());
@@ -155,17 +155,6 @@ public class createPDG {
             CFGdotGraph.plot(outputPath + "/graphs/CFGs/" + fileName + ".dot");
             //**/
 
-            System.out.print("\t\t\tGENERATING cPDG...");
-            cPDG cPDG = new cPDG(cfg, fileName);
-            System.out.println("SUCCESS!");
-            cPDGToDotGraph cpdgToDot = new cPDGToDotGraph(cPDG.getRootNode(), cPDG.getName());
-            DotGraph cPDGdotGraph = cpdgToDot.drawcPDG();
-            checkAndCreateFolder(outputPath + "/graphs/cPDGs");
-            cPDGdotGraph.plot(outputPath + "/graphs/cPDGs/" + cPDG.getName() + ".dot");
-
-            //cPDG.printcPDG(cPDG.getRootNode());
-
-
             System.out.print("\t\t\tGENERATING PDG...");
             ProgramDependenceGraph pdg = new HashMutablePDG(cfg);
             System.out.println("SUCCESS!");
@@ -176,6 +165,15 @@ public class createPDG {
             checkAndCreateFolder(outputPath + "/graphs/PDGs");
             PDGdotGraph.plot(outputPath + "/graphs/PDGs/" + fileName + ".dot");
 
+            System.out.print("\t\t\tGENERATING cPDG...");
+            cPDG cPDG = new cPDG(cfg, fileName);
+            System.out.println("SUCCESS!");
+            cPDGToDotGraph cpdgToDot = new cPDGToDotGraph(cPDG.getRootNode(), cPDG.getName());
+            DotGraph cPDGdotGraph = cpdgToDot.drawcPDG();
+            checkAndCreateFolder(outputPath + "/graphs/cPDGs");
+            cPDGdotGraph.plot(outputPath + "/graphs/cPDGs/" + cPDG.getName() + ".dot");
+
+            //cPDG.printcPDG(cPDG.getRootNode());
 
           }
 

@@ -49,6 +49,20 @@ public class cPDG {
     createPDGControlEdges();
   }
 
+  public cPDGNode getRootNode() {
+    return this.rootNode;
+  }
+
+  public String getName() {
+    return this.cPDGname;
+  }
+
+  private int getUniqueID() {
+    int toReturn = this.unId;
+    this.unId++;
+    return toReturn;
+  }
+
   private void createCFG(Unit unitNode, cPDGNode precNode) {
     if (this.visitedStmt.contains(unitNode)) {//get into a code loop -> node already visited, only link with precnode
       precNode.newEdgeOut(this.cPDGNodes.get(findcPDGNode(unitNode)), cPDGEdge.EdgeTypes.CONTROL_FLOW);
@@ -149,6 +163,12 @@ public class cPDG {
     return toReturn;
   }
 
+  private void cleanVisitcPDG(){
+    for (Map.Entry<Integer, cPDGNode> entry : this.cPDGNodes.entrySet()) {
+      entry.getValue().setVisited(false);
+    }
+  }
+
   public void printcPDG(cPDGNode node) {
     System.out.println(node.getName());
     Set<cPDGNode> toVisit = new HashSet<cPDGNode>();
@@ -162,17 +182,15 @@ public class cPDG {
     }
   }
 
-  public cPDGNode getRootNode() {
-    return this.rootNode;
-  }
-
-  public String getName() {
-    return this.cPDGname;
-  }
-
-  private int getUniqueID() {
-    int toReturn = this.unId;
-    this.unId++;
+  public String generateCCS(){
+    String toReturn = "";
+    this.cleanVisitcPDG();
+    for (Map.Entry<Integer, cPDGNode> entry : this.cPDGNodes.entrySet()) {
+      if ( entry.getKey() == 1 ) //EXIT_NODE
+        continue;
+    }
+    toReturn = toReturn + "proc COREEFILETESTCLASSCOMSECANDROIDBRIDGEREFLECTUTILpublicvoidinit4=return.nil";
     return toReturn;
   }
+
 }

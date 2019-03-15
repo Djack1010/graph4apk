@@ -16,7 +16,7 @@ for Fold in $SCRIPTPATH/../*; do
 		rm $pdfFile
             fi
         done
-	for txtFile in $Fold/*.txt; do
+	for txtFile in $Fold/*.jimple; do
             if [ -f $txtFile ]; then
 		echo "Removing ${txtFile}"
 		rm $txtFile

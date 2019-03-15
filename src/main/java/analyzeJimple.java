@@ -141,17 +141,6 @@ public class analyzeJimple {
             CFGdotGraph.plot(outputPath + "/graphs/CFGs/" + fileName + ".dot");
             //**/
 
-            System.out.print("\t\t\tGENERATING cPDG...");
-            cPDG cPDG = new cPDG(cfg, fileName);
-            System.out.println("SUCCESS!");
-            cPDGToDotGraph cpdgToDot = new cPDGToDotGraph(cPDG.getRootNode(), cPDG.getName());
-            DotGraph cPDGdotGraph = cpdgToDot.drawcPDG();
-            checkAndCreateFolder(outputPath + "/graphs/cPDGs");
-            cPDGdotGraph.plot(outputPath + "/graphs/cPDGs/" + cPDG.getName() + ".dot");
-
-            //cPDG.printcPDG(cPDG.getRootNode());
-
-
             System.out.print("\t\t\tGENERATING PDG...");
             ProgramDependenceGraph pdg = new HashMutablePDG(cfg);
             System.out.println("SUCCESS!");
@@ -162,6 +151,15 @@ public class analyzeJimple {
             checkAndCreateFolder(outputPath + "/graphs/PDGs");
             PDGdotGraph.plot(outputPath + "/graphs/PDGs/" + fileName + ".dot");
 
+            System.out.print("\t\t\tGENERATING cPDG...");
+            cPDG cPDG = new cPDG(cfg, fileName);
+            System.out.println("SUCCESS!");
+            cPDGToDotGraph cpdgToDot = new cPDGToDotGraph(cPDG.getRootNode(), cPDG.getName());
+            DotGraph cPDGdotGraph = cpdgToDot.drawcPDG();
+            checkAndCreateFolder(outputPath + "/graphs/cPDGs");
+            cPDGdotGraph.plot(outputPath + "/graphs/cPDGs/" + cPDG.getName() + ".dot");
+
+            //cPDG.printcPDG(cPDG.getRootNode());
 
           }
 
