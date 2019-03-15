@@ -163,7 +163,7 @@ public class cPDG {
     return toReturn;
   }
 
-  private void cleanVisitcPDG(){
+  private void cleanVisitcPDG() {
     for (Map.Entry<Integer, cPDGNode> entry : this.cPDGNodes.entrySet()) {
       entry.getValue().setVisited(false);
     }
@@ -182,11 +182,12 @@ public class cPDG {
     }
   }
 
-  public String generateCCS(){
+  //TODO Implementare questo metodo
+  public String generateCCS() {
     String toReturn = "";
     this.cleanVisitcPDG();
     for (Map.Entry<Integer, cPDGNode> entry : this.cPDGNodes.entrySet()) {
-      if ( entry.getKey() == 1 ) //EXIT_NODE
+      if (entry.getKey() == 1) //EXIT_NODE
         continue;
     }
     toReturn = toReturn + "proc COREEFILETESTCLASSCOMSECANDROIDBRIDGEREFLECTUTILpublicvoidinit4=return.nil";
