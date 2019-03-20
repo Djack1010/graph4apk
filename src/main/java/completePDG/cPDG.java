@@ -1,6 +1,8 @@
 package completePDG;
 
 import soot.Unit;
+import soot.Value;
+import soot.jimple.*;
 import soot.toolkits.graph.Block;
 import soot.toolkits.graph.UnitGraph;
 import soot.toolkits.graph.pdg.*;
@@ -30,9 +32,9 @@ public class cPDG {
     this.visitedStmt = new HashSet<Unit>();
 
     //create Entry and Exit Node
-    this.cPDGNodes.put(0, new cPDGNode(0, "ENTRY_NODE", null));
+    this.cPDGNodes.put(0, new cPDGNode(0, "ENTRY_NODE", "EXTRA", null));
     this.rootNode = this.cPDGNodes.get(0);
-    this.cPDGNodes.put(1, new cPDGNode(1, "EXIT_NODE", null));
+    this.cPDGNodes.put(1, new cPDGNode(1, "EXIT_NODE", "EXTRA", null));
 
     if (this.unitGraph.getHeads().size() == 0) {
       System.err.println("ERROR: cfg has no entry point");
@@ -57,6 +59,14 @@ public class cPDG {
     return this.cPDGname;
   }
 
+  public String getClassName() {
+    return this.cPDGname.split("_")[0];
+  }
+
+  public String getMethodName() {
+    return this.cPDGname.split("_")[1];
+  }
+
   private int getUniqueID() {
     int toReturn = this.unId;
     this.unId++;
@@ -69,13 +79,14 @@ public class cPDG {
       return;
     } else
       this.visitedStmt.add(unitNode);
-    cPDGNode newNode = new cPDGNode(this.getUniqueID(), unitNode.toString(), unitNode);
+    if (!(unitNode instanceof Stmt))
+      System.err.println("NODE '" + unitNode + "' is not a statement!");
+    cPDGNode newNode = new cPDGNode(this.getUniqueID(), unitNode.toString(), this.mapStmtType(unitNode), unitNode);
     this.cPDGNodes.put(newNode.getId(), newNode);
     newNode.newEdgeIn(precNode, cPDGEdge.EdgeTypes.CONTROL_FLOW);
     if (this.unitGraph.getSuccsOf(unitNode).isEmpty()) {
       newNode.newEdgeOut(this.cPDGNodes.get(1), cPDGEdge.EdgeTypes.CONTROL_FLOW);
     } else {
-      int size = this.unitGraph.getSuccsOf(unitNode).size();
       for (Unit succNode : this.unitGraph.getSuccsOf(unitNode)) {
         createCFG(succNode, newNode);
       }
@@ -163,6 +174,27 @@ public class cPDG {
     return toReturn;
   }
 
+  private String mapStmtType(Unit node) {
+    String toReturn = null;
+    if (node instanceof Stmt) {
+      if (node instanceof AssignStmt) {
+        Value rightOP = ((AssignStmt) node).getRightOp();
+        if (rightOP.toString().contains("invoke"))
+          toReturn = node.getClass().toString().substring(node.getClass().toString().lastIndexOf('.') + 1) + "-call";
+        else
+          toReturn = node.getClass().toString().substring(node.getClass().toString().lastIndexOf('.') + 1) + "-stat";
+        //} else if (node instanceof IfStmt) {
+        //  Value condition = ((IfStmt) node).getCondition();
+        //  if (condition.toString().contains("invoke"))
+        //    toReturn = node.getClass().toString().substring(node.getClass().toString().lastIndexOf('.') + 1) + "-call";
+        //  else
+        //    toReturn = node.getClass().toString().substring(node.getClass().toString().lastIndexOf('.') + 1) + "-stat";
+      } else
+        toReturn = node.getClass().toString().substring(node.getClass().toString().lastIndexOf('.') + 1);
+    }
+    return toReturn;
+  }
+
   private void cleanVisitcPDG() {
     for (Map.Entry<Integer, cPDGNode> entry : this.cPDGNodes.entrySet()) {
       entry.getValue().setVisited(false);
@@ -182,15 +214,51 @@ public class cPDG {
     }
   }
 
-  //TODO Implementare questo metodo
+  //TODO test
   public String generateCCS() {
     String toReturn = "";
     this.cleanVisitcPDG();
     for (Map.Entry<Integer, cPDGNode> entry : this.cPDGNodes.entrySet()) {
+
       if (entry.getKey() == 1) //EXIT_NODE
         continue;
+
+      if (!entry.getValue().getEdgesOut().isEmpty()) {
+
+        toReturn = toReturn + "proc " + this.getMethodName() + entry.getValue().getId() + " = ";
+        boolean init = true;
+
+        for (cPDGEdge edge : entry.getValue().getEdgesOut()) {
+
+          if (init)
+            init = false;
+          else
+            toReturn = toReturn + " + ";
+
+          if (edge.getEdgeType() == cPDGEdge.EdgeTypes.CONTROL_FLOW)
+            toReturn = toReturn + "f_" + edge.getDest().getStmtType()
+              + "." + this.getMethodName() + edge.getDest().getId();
+
+          else if (edge.getEdgeType() == cPDGEdge.EdgeTypes.DATA_DEPENDENCE) {
+            String varFlow = null;
+            if (edge.getSource().getUnitNode() instanceof AssignStmt)
+              varFlow = ((AssignStmt) edge.getSource().getUnitNode()).getLeftOp().toString().replaceAll("\\$", "");
+            else if (edge.getSource().getUnitNode() instanceof IdentityStmt)
+              varFlow = ((IdentityStmt) edge.getSource().getUnitNode()).getLeftOp().toString().replaceAll("\\$", "");
+            else
+              System.err.println("ERROR: Unit Node instance of " + edge.getSource().getUnitNode().getClass());
+            toReturn = toReturn + "d_" + varFlow + "." + this.getMethodName() + edge.getDest().getId();
+
+          } else if (edge.getEdgeType() == cPDGEdge.EdgeTypes.CONTROL_DEPENDENCE)
+            toReturn = toReturn + "c." + this.getMethodName() + edge.getDest().getId();
+        }
+
+        toReturn = toReturn + "\n\n";
+
+      }
     }
-    toReturn = toReturn + "proc COREEFILETESTCLASSCOMSECANDROIDBRIDGEREFLECTUTILpublicvoidinit4=return.nil";
+
+    toReturn = toReturn + "proc " + this.getMethodName() + "1=return.nil";
     return toReturn;
   }
 

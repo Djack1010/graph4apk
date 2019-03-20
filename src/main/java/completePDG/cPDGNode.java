@@ -9,15 +9,17 @@ public class cPDGNode {
 
   private int nodeId;
   private String content;
+  private String stmtType;
   private Set<cPDGEdge> edgesOut;
   private Set<cPDGEdge> edgesIn;
   private Unit unitNode;
   private boolean visited;
 
 
-  public cPDGNode(int nodeId, String content, Unit node) {
+  public cPDGNode(int nodeId, String content, String stmt, Unit node) {
     this.visited = false;
     this.content = content.replaceAll("\\s", "");
+    this.stmtType = stmt;
     this.nodeId = nodeId;
     this.edgesOut = new HashSet<cPDGEdge>();
     this.edgesIn = new HashSet<cPDGEdge>();
@@ -27,6 +29,7 @@ public class cPDGNode {
   public cPDGNode(cPDGNode nodeToClone) {
     this.visited = false;
     this.content = nodeToClone.getContent();
+    this.stmtType = nodeToClone.getStmtType();
     this.nodeId = nodeToClone.getId();
     this.edgesOut = new HashSet<cPDGEdge>();
     this.edgesIn = new HashSet<cPDGEdge>();
@@ -65,6 +68,10 @@ public class cPDGNode {
 
   public int getId() {
     return this.nodeId;
+  }
+
+  public String getStmtType() {
+    return this.stmtType;
   }
 
   public String getName() {

@@ -12,6 +12,7 @@ import utility.PDGToDotGraph;
 import utility.cPDGToDotGraph;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
@@ -173,7 +174,16 @@ public class createPDG {
             checkAndCreateFolder(outputPath + "/graphs/cPDGs");
             cPDGdotGraph.plot(outputPath + "/graphs/cPDGs/" + cPDG.getName() + ".dot");
 
-            //cPDG.printcPDG(cPDG.getRootNode());
+            System.out.print("\t\t\t\tGENERATING CCS...");
+            String ccs = cPDG.generateCCS();
+            System.out.println("SUCCESS!");
+            checkAndCreateFolder(outputPath + "/graphs/CCS");
+            try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + fileName + ".ccs")) {
+              out.println(ccs);
+            } catch (FileNotFoundException e){
+              System.err.println(e);
+              System.exit(1);
+            }
 
           }
 
