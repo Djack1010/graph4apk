@@ -1,11 +1,11 @@
+import SDG.SDG;
 import completePDG.cPDG;
 import soot.*;
 import soot.options.Options;
 import soot.toolkits.graph.BriefUnitGraph;
 import soot.toolkits.graph.UnitGraph;
-import soot.toolkits.graph.pdg.ProgramDependenceGraph;
 import soot.toolkits.graph.pdg.HashMutablePDG;
-import soot.toolkits.scalar.UnitValueBoxPair;
+import soot.toolkits.graph.pdg.ProgramDependenceGraph;
 import soot.util.cfgcmd.CFGToDotGraph;
 import soot.util.dot.DotGraph;
 import utility.PDGToDotGraph;
@@ -17,17 +17,18 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
 
-public class createPDG {
+public class createSDG {
 
   //PATHs
   private static String outputPath = "/home/giacomo/IdeaProjects/graph4apk/results";
 
   //TEST, set to 0 for analyze all classes and methods
-  private static int MAX_TEST_CLASS = 10;
-  private static int MAX_TEST_METH = 10;
+  private static int MAX_TEST_CLASS = 0;
+  private static int MAX_TEST_METH = 0;
   private static String CLASS_TO_TEST = ""; //"com.google.update.RU"; //"cn.domob.android.ads.q1";
   private static String METH_TO_TEST = ""; //"U1"; //"run";
   private static Set<String> METH_JAIL = new HashSet<>(Arrays.asList("com.admogo.DataBackup_getDataList"));
+  private static SDG sdg = new SDG();
 
   public static void main(String[] args) {
 
@@ -64,6 +65,7 @@ public class createPDG {
         "-android-jars",
         "/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms",
         "-process-dir",
+        //"/home/giacomo/Documents/merc_proj/apk_test/0ad370eab2ac647a932ad18fbb55d098.apk"
         "/home/giacomo/Documents/merc_proj/apk_test/0d4a16a36a62e4d9bc6e466729a55094.apk"
       };
     }
@@ -99,7 +101,7 @@ public class createPDG {
           else
             numTestClas++;
 
-          System.out.println("\tStarting Transformation for class " + cl.getName());
+          //System.out.println("\tStarting Transformation for class " + cl.getName());
 
           Iterator<SootMethod> methodIt = cl.getMethods().iterator();
           while (methodIt.hasNext()) {
@@ -115,21 +117,24 @@ public class createPDG {
             if (METH_JAIL.contains(cl.getName().replaceAll("\\$", "") + "_" + m.getName().replaceAll("\\$", "")))
               continue;
 
-            System.out.println("\t\tmethod " + m.getName());
+            //System.out.println("\t\tmethod " + m.getName());
+
+            String fileName = cl.getName() + "_" + m.getName() +
+              m.getParameterTypes().toString().replaceAll(" ", "")
+                .replaceAll("(?<!(byte|java.lang.String|java.lang.Object|\\[\\]|int|boolean))\\[", "(")
+                .replaceAll("(?<!(byte|java.lang.String|java.lang.Object|int|boolean|\\[\\])\\[)\\]", ")");
+
+            fileName = fileName.replaceAll("\\$", "");
 
             if (!(m.hasActiveBody())) {
-              System.err.println("\t\t\tNo active body for method " + m.getName());
+              //System.err.println("\t\t\tNo active body for method " + m.getName());
+              sdg.addNotActiveBody(fileName);
               continue;
             }
 
             Body body = m.retrieveActiveBody();
+
             numTestMeth++;
-
-            String fileName = cl.getName() + "_" + m.getName() +
-              m.getParameterTypes().toString().replaceAll(" ", "")
-                .replaceAll("(?<!byte)\\[", "(").replaceAll("(?<!byte\\[)\\]", ")");
-
-            fileName = fileName.replaceAll("\\$", "");
 
             //Print Jimple code of Body method on file
             StringWriter sw = new StringWriter();
@@ -151,44 +156,46 @@ public class createPDG {
             //Represents a CFG where the nodes are Unit instances,
             // and where no edges are included to account for control flow associated with exceptions.
             //TODO: move to better CFG to handle exceptions (see ExceptionalUnitGraph or TrapUnitGraph)
-            System.out.print("\t\t\tGENERATING CFG...");
+            //System.out.print("\t\t\tGENERATING CFG...");
             UnitGraph cfg = new BriefUnitGraph(body);
             ///**
-            System.out.println("SUCCESS!");
-            CFGToDotGraph cfgToDot = new CFGToDotGraph();
-            DotGraph CFGdotGraph = cfgToDot.drawCFG(cfg, body);
-            checkAndCreateFolder(outputPath + "/graphs/CFGs");
-            CFGdotGraph.plot(outputPath + "/graphs/CFGs/" + fileName + ".dot");
+            //System.out.println("SUCCESS!");
+            //CFGToDotGraph cfgToDot = new CFGToDotGraph();
+            //DotGraph CFGdotGraph = cfgToDot.drawCFG(cfg, body);
+            //checkAndCreateFolder(outputPath + "/graphs/CFGs");
+            //CFGdotGraph.plot(outputPath + "/graphs/CFGs/" + fileName + ".dot");
             //**/
 
-            System.out.print("\t\t\tGENERATING PDG...");
-            ProgramDependenceGraph pdg = new HashMutablePDG(cfg);
-            System.out.println("SUCCESS!");
+            //System.out.print("\t\t\tGENERATING PDG...");
+            //ProgramDependenceGraph pdg = new HashMutablePDG(cfg);
+            //System.out.println("SUCCESS!");
             //Print on file the pdg using PDGToDotGraph
-            System.out.println("\t\t\t\tPrinting PDG on file");
-            PDGToDotGraph pdgToDot = new PDGToDotGraph(pdg, m.getName());
-            DotGraph PDGdotGraph = pdgToDot.drawPDG();
-            checkAndCreateFolder(outputPath + "/graphs/PDGs");
-            PDGdotGraph.plot(outputPath + "/graphs/PDGs/" + fileName + ".dot");
+            //System.out.println("\t\t\t\tPrinting PDG on file");
+            //PDGToDotGraph pdgToDot = new PDGToDotGraph(pdg, m.getName());
+            //DotGraph PDGdotGraph = pdgToDot.drawPDG();
+            //checkAndCreateFolder(outputPath + "/graphs/PDGs");
+            //PDGdotGraph.plot(outputPath + "/graphs/PDGs/" + fileName + ".dot");
 
-            System.out.print("\t\t\tGENERATING cPDG...");
+            //System.out.print("\t\t\tGENERATING cPDG...");
             cPDG cPDG = new cPDG(cfg, fileName);
-            System.out.println("SUCCESS!");
-            cPDGToDotGraph cpdgToDot = new cPDGToDotGraph(cPDG.getRootNode(), cPDG.getName());
-            DotGraph cPDGdotGraph = cpdgToDot.drawcPDG();
-            checkAndCreateFolder(outputPath + "/graphs/cPDGs");
-            cPDGdotGraph.plot(outputPath + "/graphs/cPDGs/" + cPDG.getName() + ".dot");
+            //System.out.println("SUCCESS!");
+            //cPDGToDotGraph cpdgToDot = new cPDGToDotGraph(cPDG.getRootNode(), cPDG.getName());
+            //DotGraph cPDGdotGraph = cpdgToDot.drawcPDG();
+            //checkAndCreateFolder(outputPath + "/graphs/cPDGs");
+            //cPDGdotGraph.plot(outputPath + "/graphs/cPDGs/" + cPDG.getName() + ".dot");
 
-            System.out.print("\t\t\t\tGENERATING CCS...");
-            String ccs = cPDG.generateCCS();
-            System.out.println("SUCCESS!");
-            checkAndCreateFolder(outputPath + "/graphs/CCS");
-            try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + fileName + ".ccs")) {
-              out.println(ccs);
-            } catch (FileNotFoundException e) {
-              System.err.println(e);
-              System.exit(1);
-            }
+            sdg.addcPDG(cPDG);
+
+            //System.out.print("\t\t\t\tGENERATING CCS...");
+            //String ccs = cPDG.generateCCS();
+            //System.out.println("SUCCESS!");
+            //checkAndCreateFolder(outputPath + "/graphs/CCS");
+            //try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + fileName + ".ccs")) {
+            //  out.println(ccs);
+            //} catch (FileNotFoundException e){
+            //  System.err.println(e);
+            //  System.exit(1);
+            //}
 
           }
 
@@ -200,6 +207,9 @@ public class createPDG {
 
     //RUN SOOT
     soot.Main.main(sootArgs);
+
+    sdg.matchInvokecPDG();
+
   }
 
   private static void checkAndCreateFolder(String folderPath) {
@@ -215,4 +225,3 @@ public class createPDG {
   }
 
 }
-

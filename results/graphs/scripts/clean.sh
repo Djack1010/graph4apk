@@ -10,20 +10,19 @@ for Fold in $SCRIPTPATH/../*; do
                 rm $dotFile
             fi
         done
-	for pdfFile in $Fold/*.pdf; do
+	    for pdfFile in $Fold/*.pdf; do
             if [ -f $pdfFile ]; then
                 echo "Removing ${pdfFile}"
                 rm $pdfFile
             fi
         done
-	for txtFile in $Fold/*.jimple; do
+	    for txtFile in $Fold/*.jimple; do
             if [ -f $txtFile ]; then
                 echo "Removing ${txtFile}"
                 rm $txtFile
             fi
         done
-    fi
-    for ccsFile in $Fold/*.ccs; do
+        for ccsFile in $Fold/*.ccs; do
             if [ -f $ccsFile ]; then
                 echo "Removing ${ccsFile}"
                 rm $ccsFile

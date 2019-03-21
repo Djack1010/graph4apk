@@ -12,15 +12,17 @@ import soot.toolkits.scalar.SmartLocalDefs;
 import soot.toolkits.scalar.UnitValueBoxPair;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 public class cPDG {
 
-  int unId;
-  String cPDGname;
-  cPDGNode rootNode;
-  UnitGraph unitGraph;
-  Set<Unit> visitedStmt;
-  Map<Integer, cPDGNode> cPDGNodes;
+  private int unId;
+  private String cPDGname;
+  private cPDGNode rootNode;
+  private UnitGraph unitGraph;
+  private Set<Unit> visitedStmt;
+  private Map<String, Unit> invokeStmt;
+  private Map<Integer, cPDGNode> cPDGNodes;
 
 
   public cPDG(UnitGraph cfg, String name) {
@@ -28,8 +30,9 @@ public class cPDG {
     this.unitGraph = cfg;
     this.cPDGname = name;
     this.unId = 2; //id 0 and 1 reserved for entry and exit node
-    this.cPDGNodes = new TreeMap<Integer, cPDGNode>();
-    this.visitedStmt = new HashSet<Unit>();
+    this.cPDGNodes = new TreeMap<>();
+    this.visitedStmt = new HashSet<>();
+    this.invokeStmt = new HashMap<>();
 
     //create Entry and Exit Node
     this.cPDGNodes.put(0, new cPDGNode(0, "ENTRY_NODE", "EXTRA", null));
@@ -65,6 +68,61 @@ public class cPDG {
 
   public String getMethodName() {
     return this.cPDGname.split("_")[1];
+  }
+
+  public Map<String,Unit> getInvokeStmt() {
+    return this.invokeStmt;
+  }
+
+  public UnitGraph getUnitGraph() {
+    return this.unitGraph;
+  }
+
+  public String generateCCS() {
+    String toReturn = "";
+    this.cleanVisitcPDG();
+    for (Map.Entry<Integer, cPDGNode> entry : this.cPDGNodes.entrySet()) {
+
+      if (entry.getKey() == 1) //EXIT_NODE
+        continue;
+
+      if (!entry.getValue().getEdgesOut().isEmpty()) {
+
+        toReturn = toReturn + "proc " + this.getMethodName() + entry.getValue().getId() + "=";
+        boolean init = true;
+
+        for (cPDGEdge edge : entry.getValue().getEdgesOut()) {
+
+          if (init)
+            init = false;
+          else
+            toReturn = toReturn + "+";
+
+          if (edge.getEdgeType() == cPDGEdge.EdgeTypes.CONTROL_FLOW)
+            toReturn = toReturn + "f_" + edge.getDest().getStmtType()
+              + "." + this.getMethodName() + edge.getDest().getId();
+
+          else if (edge.getEdgeType() == cPDGEdge.EdgeTypes.DATA_DEPENDENCE) {
+            String varFlow = null;
+            if (edge.getSource().getUnitNode() instanceof AssignStmt)
+              varFlow = ((AssignStmt) edge.getSource().getUnitNode()).getLeftOp().toString().replaceAll("\\$", "");
+            else if (edge.getSource().getUnitNode() instanceof IdentityStmt)
+              varFlow = ((IdentityStmt) edge.getSource().getUnitNode()).getLeftOp().toString().replaceAll("\\$", "");
+            else
+              System.err.println("ERROR: Unit Node instance of " + edge.getSource().getUnitNode().getClass());
+            toReturn = toReturn + "d_" + varFlow + "." + this.getMethodName() + edge.getDest().getId();
+
+          } else if (edge.getEdgeType() == cPDGEdge.EdgeTypes.CONTROL_DEPENDENCE)
+            toReturn = toReturn + "c." + this.getMethodName() + edge.getDest().getId();
+        }
+
+        toReturn = toReturn + "\n\n";
+
+      }
+    }
+
+    toReturn = toReturn + "proc " + this.getMethodName() + "1=return.nil";
+    return toReturn;
   }
 
   private int getUniqueID() {
@@ -177,6 +235,7 @@ public class cPDG {
   private String mapStmtType(Unit node) {
     String toReturn = null;
     if (node instanceof Stmt) {
+
       if (node instanceof AssignStmt) {
         Value rightOP = ((AssignStmt) node).getRightOp();
         if (rightOP.toString().contains("invoke"))
@@ -189,8 +248,42 @@ public class cPDG {
         //    toReturn = node.getClass().toString().substring(node.getClass().toString().lastIndexOf('.') + 1) + "-call";
         //  else
         //    toReturn = node.getClass().toString().substring(node.getClass().toString().lastIndexOf('.') + 1) + "-stat";
-      } else
+
+      } else {
+
+        if (node instanceof InvokeStmt) {
+          //Example: virtualinvoke [$r5.]<cn.domob.android.ads.i: void a([android.content.Context])>([$r6])
+          //[...] means not mandatory
+          String invokeName = node.toString().replaceAll("\\$", "");
+          String regex = "^(interface|virtual|static|special)invoke " + //start line, invoke type
+            "([a-zA-Z0-9]+\\.)?" + // nameClass. -> not mandatory, if attribute of a class but can be also just method
+            "<([a-zA-Z0-9_]+\\.)+([a-zA-Z0-9_]+)?: " + // name.of.the.package: -> apparently, can also be 'name.package.'
+            "[a-zA-Z0-9\\.\\[\\]]+ " + // returnType -> can be primitive (boolean, int) but also class (java.lang.String)
+            "([a-zA-Z0-9_]+|<init>){1}" + // nameOfTheMethod
+            "\\([a-zA-Z0-9\\.,_\\[\\]]*\\)>" + // parametersType -> list of parameters type (int,byte[],com.some_class)
+            "\\(.*\\)$"; // parameters and end of line
+
+          if (!Pattern.matches(regex, invokeName)) {
+            System.err.println("InvokeStmt does not match the regex");
+            System.err.println(invokeName);
+            for (int i = 0; i < invokeName.length(); i++) {
+              String temp = i != invokeName.length() - 1 ?
+                invokeName.substring(0, i) + invokeName.substring(i + 1) :
+                invokeName.substring(0, i);
+              if (Pattern.matches(regex, temp)) {
+                System.err.println("FAILURE CAUSED by char at position: " + i + " -> '" + invokeName.charAt(i) + "'");
+                break;
+              }
+            }
+
+          } else {
+            this.invokeStmt.put(invokeName.split("<")[1].split(":")[0] + "_"
+              + invokeName.split(":")[1].split(" ")[2].split("\\)")[0] + ")",node);
+          }
+        }
+
         toReturn = node.getClass().toString().substring(node.getClass().toString().lastIndexOf('.') + 1);
+      }
     }
     return toReturn;
   }
@@ -201,65 +294,38 @@ public class cPDG {
     }
   }
 
-  public void printcPDG(cPDGNode node) {
-    System.out.println(node.getName());
-    Set<cPDGNode> toVisit = new HashSet<cPDGNode>();
-    for (cPDGEdge edge : node.getEdgesOut()) {
-      System.out.println("\t -> " + edge.getDest().getId());
-      toVisit.add(edge.getDest());
-    }
-    Iterator<cPDGNode> iter = toVisit.iterator();
-    while (iter.hasNext()) {
-      printcPDG(iter.next());
-    }
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((cPDGname == null) ? 0 : cPDGname.hashCode());
+    result = prime * result + ((unitGraph == null) ? 0 : unitGraph.hashCode());
+    result = prime * result + ((invokeStmt == null) ? 0 : invokeStmt.hashCode());
+    return result;
   }
 
-  //TODO test
-  public String generateCCS() {
-    String toReturn = "";
-    this.cleanVisitcPDG();
-    for (Map.Entry<Integer, cPDGNode> entry : this.cPDGNodes.entrySet()) {
-
-      if (entry.getKey() == 1) //EXIT_NODE
-        continue;
-
-      if (!entry.getValue().getEdgesOut().isEmpty()) {
-
-        toReturn = toReturn + "proc " + this.getMethodName() + entry.getValue().getId() + " = ";
-        boolean init = true;
-
-        for (cPDGEdge edge : entry.getValue().getEdgesOut()) {
-
-          if (init)
-            init = false;
-          else
-            toReturn = toReturn + " + ";
-
-          if (edge.getEdgeType() == cPDGEdge.EdgeTypes.CONTROL_FLOW)
-            toReturn = toReturn + "f_" + edge.getDest().getStmtType()
-              + "." + this.getMethodName() + edge.getDest().getId();
-
-          else if (edge.getEdgeType() == cPDGEdge.EdgeTypes.DATA_DEPENDENCE) {
-            String varFlow = null;
-            if (edge.getSource().getUnitNode() instanceof AssignStmt)
-              varFlow = ((AssignStmt) edge.getSource().getUnitNode()).getLeftOp().toString().replaceAll("\\$", "");
-            else if (edge.getSource().getUnitNode() instanceof IdentityStmt)
-              varFlow = ((IdentityStmt) edge.getSource().getUnitNode()).getLeftOp().toString().replaceAll("\\$", "");
-            else
-              System.err.println("ERROR: Unit Node instance of " + edge.getSource().getUnitNode().getClass());
-            toReturn = toReturn + "d_" + varFlow + "." + this.getMethodName() + edge.getDest().getId();
-
-          } else if (edge.getEdgeType() == cPDGEdge.EdgeTypes.CONTROL_DEPENDENCE)
-            toReturn = toReturn + "c." + this.getMethodName() + edge.getDest().getId();
-        }
-
-        toReturn = toReturn + "\n\n";
-
-      }
-    }
-
-    toReturn = toReturn + "proc " + this.getMethodName() + "1=return.nil";
-    return toReturn;
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    cPDG other = (cPDG) obj;
+    if (this.cPDGname == null) {
+      if (other.getName() != null)
+        return false;
+    } else if (!this.cPDGname.equals(other.getName()))
+      return false;
+    if (this.unitGraph == null) {
+      if (other.getUnitGraph() != null)
+        return false;
+    } else if (!this.unitGraph.equals(other.getUnitGraph()))
+      return false;
+    if (this.invokeStmt == null) {
+      return other.getInvokeStmt() == null;
+    } else return this.invokeStmt.equals(other.getInvokeStmt());
   }
 
 }
