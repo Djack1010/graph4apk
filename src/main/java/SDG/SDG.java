@@ -2,6 +2,9 @@ package SDG;
 
 import completePDG.cPDG;
 import soot.Unit;
+import soot.util.dot.DotGraph;
+import soot.util.dot.DotGraphEdge;
+import soot.util.dot.DotGraphNode;
 
 import java.util.*;
 
@@ -10,6 +13,7 @@ public class SDG {
   private Map<String, cPDG> cPDGAvailable;
   private Set<String> notActiveBodycPDG;
   private Map<cPDG, Set<SDGEdge>> sdg;
+  private DotGraph dotGraph = null;
 
   public SDG() {
     this.cPDGAvailable = new HashMap<>();
@@ -18,11 +22,148 @@ public class SDG {
   }
 
   public void addcPDG(cPDG cpdg) {
-    this.cPDGAvailable.put(cpdg.getName(), cpdg);
+    this.cPDGAvailable.put(cpdg.getFullName(), cpdg);
   }
 
   public void addNotActiveBody(String name) {
     this.notActiveBodycPDG.add(name);
+  }
+
+  public DotGraph drawcSDG() {
+    this.dotGraph = new DotGraph("SDG");
+    this.dotGraph.setNodeShape("record");
+    DotGraphNode dotNodeLib = this.dotGraph.getNode("LIBRARY CALL");
+    dotNodeLib.setLabel("{ LIBRARY CALL }");
+    DotGraphNode dotNodeNAB = this.dotGraph.getNode("NOT ACTIVE BODY");
+    dotNodeNAB.setLabel("{ NOT ACTIVE BODY }");
+    for (Map.Entry<String, cPDG> entrycPDG : this.cPDGAvailable.entrySet()) {
+      if (this.sdg.get(entrycPDG.getValue())==null){
+        DotGraphNode dotNode = this.dotGraph.drawNode(String.valueOf(entrycPDG.getValue().getFullName()));
+        dotNode.setLabel("{" + entrycPDG.getValue().getFullName()
+          .replace("<", "\\<").replace(">", "\\>")
+          .replace("{", "\\{").replace("}", "\\}") + "}");
+      } else {
+        DotGraphNode dotNode = this.dotGraph.drawNode(String.valueOf(entrycPDG.getValue().getFullName()));
+        dotNode.setLabel("{" + entrycPDG.getValue().getFullName()
+          .replace("<", "\\<").replace(">", "\\>")
+          .replace("{", "\\{").replace("}", "\\}") + "}");
+        Set<SDGEdge> tempSDGEdgeSet = new HashSet<SDGEdge>();
+        tempSDGEdgeSet = this.sdg.get(entrycPDG.getValue());
+        for ( SDGEdge edge : tempSDGEdgeSet) {
+          if ( edge.getDest() == null  && edge.isLib())
+            this.dotGraph.drawEdge(String.valueOf(entrycPDG.getValue().getFullName()),
+            "LIBRARY CALL");
+          else if (edge.getDest() == null  && !edge.isLib() ){
+            this.dotGraph.drawEdge(String.valueOf(entrycPDG.getValue().getFullName()),
+              "NOT ACTIVE BODY");
+          } else if (edge.getDest() != null){
+            this.dotGraph.drawEdge(String.valueOf(entrycPDG.getValue().getFullName()),
+              edge.getDest().getFullName());
+          }
+        }
+      }
+    }
+    return dotGraph;
+  }
+
+  public String generateCCS() {
+    String startingProc = "proc StartingNode=";
+    boolean init = true;
+    String toReturn = "";
+    for (Map.Entry<String, cPDG> entrycPDG : this.cPDGAvailable.entrySet()) {
+
+      if (this.sdg.get(entrycPDG.getValue())==null)
+        continue;
+
+      if (init)
+        startingProc = startingProc + "e." +entrycPDG.getValue().getFullName().replaceAll("\\.","-");
+      else
+        startingProc = startingProc + "+e." +entrycPDG.getValue().getFullName().replaceAll("\\.","-");
+
+      toReturn = toReturn + "proc " + entrycPDG.getValue().getFullName().replaceAll("\\.","-") + "=";
+      init = true;
+
+      Set<SDGEdge> tempSDGEdgeSet = new HashSet<SDGEdge>();
+      tempSDGEdgeSet = this.sdg.get(entrycPDG.getValue());
+      for ( SDGEdge edge : tempSDGEdgeSet) {
+        if (init)
+          init = false;
+        else
+          toReturn = toReturn + "+";
+
+        if ( edge.getDest() == null  && edge.isLib())
+          toReturn = toReturn + "e.LibCall(" + edge.getInvokeStmt().replaceAll("\\.","-") + ")";
+        else if (edge.getDest() == null  && !edge.isLib() ){
+          toReturn = toReturn + "e.NotActiveBody";
+        } else if (edge.getDest() != null){
+          toReturn = toReturn + "e." + edge.getDest().getFullName().replaceAll("\\.","-");
+          this.dotGraph.drawEdge(String.valueOf(entrycPDG.getValue().getFullName().replaceAll("\\.","-")),
+            edge.getDest().getFullName().replaceAll("\\.","-"));
+        }
+
+      }
+
+      toReturn = toReturn + "\n\n";
+
+    }
+
+    startingProc = startingProc + "\n\n";
+    //toReturn = toReturn + "proc " + this.getFullName() + "1=return.nil";
+    return startingProc + toReturn;
+
+  }
+
+  public String generateSimpleCCS() {
+    String startingProc = "proc StartingNode=";
+    boolean supInit=true;
+    String toReturn = "";
+    for (Map.Entry<String, cPDG> entrycPDG : this.cPDGAvailable.entrySet()) {
+
+      if (this.sdg.get(entrycPDG.getValue())==null)
+        continue;
+
+      String tempProc = "proc " + entrycPDG.getValue().getFullName().replaceAll("\\.","-") + "=";
+      boolean init = true;
+      boolean valid = false;
+
+      Set<SDGEdge> tempSDGEdgeSet = new HashSet<SDGEdge>();
+      tempSDGEdgeSet = this.sdg.get(entrycPDG.getValue());
+      for ( SDGEdge edge : tempSDGEdgeSet) {
+        if (init)
+          init = false;
+        else
+          tempProc = tempProc + "+";
+
+        if ( edge.getDest() == null  && edge.isLib())
+          tempProc = tempProc + "e.LibCall(" + edge.getInvokeStmt().replaceAll("\\.","-") + ")";
+        else if (edge.getDest() == null  && !edge.isLib() ){
+          valid=true;
+          tempProc = tempProc + "e.NotActiveBody";
+        } else if (edge.getDest() != null){
+          valid=true;
+          tempProc = tempProc + "e." + edge.getDest().getFullName().replaceAll("\\.","-");
+          this.dotGraph.drawEdge(String.valueOf(entrycPDG.getValue().getFullName().replaceAll("\\.","-")),
+            edge.getDest().getFullName().replaceAll("\\.","-"));
+        }
+
+      }
+
+      if(valid) {
+        toReturn = toReturn + tempProc + "\n\n";
+        if (supInit)
+          startingProc = startingProc + "e." +entrycPDG.getValue().getFullName().replaceAll("\\.","-");
+        else {
+          supInit=false;
+          startingProc = startingProc + "+e." + entrycPDG.getValue().getFullName().replaceAll("\\.", "-");
+        }
+      }
+
+    }
+
+    startingProc = startingProc + "\n\n";
+    //toReturn = toReturn + "proc " + this.getFullName() + "1=return.nil";
+    return startingProc + toReturn;
+
   }
 
   public void matchInvokecPDG() {
@@ -37,13 +178,13 @@ public class SDG {
       for (Map.Entry<String, Unit> entryInvoke : entrycPDG.getValue().getInvokeStmt().entrySet()) {
         tot++;
         if (this.cPDGAvailable.containsKey(entryInvoke.getKey())) {
-          tempSDGEdgeSet.add(new SDGEdge(entrycPDG.getValue(), entryInvoke.getValue(), this.cPDGAvailable.get(entryInvoke.getKey())));
+          tempSDGEdgeSet.add(new SDGEdge(entrycPDG.getValue(), entryInvoke.getValue(), entryInvoke.getKey(), this.cPDGAvailable.get(entryInvoke.getKey())));
           matched++;
         } else if (this.libCall(entryInvoke.getKey())) {
-          tempSDGEdgeSet.add(new SDGEdge(entrycPDG.getValue(), entryInvoke.getValue(), null, true));
+          tempSDGEdgeSet.add(new SDGEdge(entrycPDG.getValue(), entryInvoke.getValue(), entryInvoke.getKey(), null, true));
           lib++;
         } else if (this.notActiveBodycPDG.contains(entryInvoke.getKey())) {
-          tempSDGEdgeSet.add(new SDGEdge(entrycPDG.getValue(), entryInvoke.getValue(), null));
+          tempSDGEdgeSet.add(new SDGEdge(entrycPDG.getValue(), entryInvoke.getValue(), entryInvoke.getKey(), null));
           notActiveBody++;
         } else {
           //System.err.println("FROM " + entrycPDG.getValue().getName() + " CANNOT MATCH CALL: " + entryInvoke.getKey());

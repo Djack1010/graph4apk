@@ -17,7 +17,9 @@ import java.util.regex.Pattern;
 public class cPDG {
 
   private int unId;
-  private String cPDGname;
+  private String cPDGFullName;
+  private String cPDGClassName;
+  private String cPDGMethodName;
   private cPDGNode rootNode;
   private UnitGraph unitGraph;
   private Set<Unit> visitedStmt;
@@ -25,10 +27,12 @@ public class cPDG {
   private Map<Integer, cPDGNode> cPDGNodes;
 
 
-  public cPDG(UnitGraph cfg, String name) {
+  public cPDG(UnitGraph cfg, String fname, String cname, String mname) {
 
     this.unitGraph = cfg;
-    this.cPDGname = name;
+    this.cPDGFullName = fname;
+    this.cPDGClassName = cname;
+    this.cPDGMethodName = mname;
     this.unId = 2; //id 0 and 1 reserved for entry and exit node
     this.cPDGNodes = new TreeMap<>();
     this.visitedStmt = new HashSet<>();
@@ -58,16 +62,16 @@ public class cPDG {
     return this.rootNode;
   }
 
-  public String getName() {
-    return this.cPDGname;
+  public String getFullName() {
+    return this.cPDGFullName;
   }
 
   public String getClassName() {
-    return this.cPDGname.split("_")[0];
+    return this.cPDGClassName;
   }
 
   public String getMethodName() {
-    return this.cPDGname.split("_")[1];
+    return this.cPDGMethodName;
   }
 
   public Map<String,Unit> getInvokeStmt() {
@@ -298,7 +302,7 @@ public class cPDG {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((cPDGname == null) ? 0 : cPDGname.hashCode());
+    result = prime * result + ((cPDGFullName == null) ? 0 : cPDGFullName.hashCode());
     result = prime * result + ((unitGraph == null) ? 0 : unitGraph.hashCode());
     result = prime * result + ((invokeStmt == null) ? 0 : invokeStmt.hashCode());
     return result;
@@ -313,10 +317,10 @@ public class cPDG {
     if (getClass() != obj.getClass())
       return false;
     cPDG other = (cPDG) obj;
-    if (this.cPDGname == null) {
-      if (other.getName() != null)
+    if (this.cPDGFullName == null) {
+      if (other.getFullName() != null)
         return false;
-    } else if (!this.cPDGname.equals(other.getName()))
+    } else if (!this.cPDGFullName.equals(other.getFullName()))
       return false;
     if (this.unitGraph == null) {
       if (other.getUnitGraph() != null)

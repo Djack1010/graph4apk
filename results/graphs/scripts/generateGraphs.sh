@@ -13,7 +13,8 @@ for Fold in $SCRIPTPATH/../*; do
                 else
                     echo "Generating graph for $dotFile"
                     #echo $dotFile >> $SCRIPTPATH/graphToPrint.txt
-                    dot -Tpdf $dotFile -o $OUTPUT.pdf
+                    #dot -Tpdf $dotFile -o $OUTPUT.pdf
+                    dot -Tps $dotFile -o $OUTPUT.ps
                 fi
             fi
         done

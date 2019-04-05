@@ -152,12 +152,12 @@ public class analyzeJimple {
             PDGdotGraph.plot(outputPath + "/graphs/PDGs/" + fileName + ".dot");
 
             System.out.print("\t\t\tGENERATING cPDG...");
-            cPDG cPDG = new cPDG(cfg, fileName);
+            cPDG cPDG = new cPDG(cfg, fileName,cl.getName(),m.getName());
             System.out.println("SUCCESS!");
-            cPDGToDotGraph cpdgToDot = new cPDGToDotGraph(cPDG.getRootNode(), cPDG.getName());
+            cPDGToDotGraph cpdgToDot = new cPDGToDotGraph(cPDG.getRootNode(), cPDG.getFullName());
             DotGraph cPDGdotGraph = cpdgToDot.drawcPDG();
             checkAndCreateFolder(outputPath + "/graphs/cPDGs");
-            cPDGdotGraph.plot(outputPath + "/graphs/cPDGs/" + cPDG.getName() + ".dot");
+            cPDGdotGraph.plot(outputPath + "/graphs/cPDGs/" + cPDG.getFullName() + ".dot");
 
             //cPDG.printcPDG(cPDG.getRootNode());
 

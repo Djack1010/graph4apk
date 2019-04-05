@@ -7,25 +7,32 @@ public class SDGEdge {
 
   private cPDG source;
   private Unit unitSource;
+  private String invokeStmt;
   private cPDG dest;
   private boolean isLib;
 
-  public SDGEdge(cPDG source, Unit unitSource, cPDG dest) {
+  public SDGEdge(cPDG source, Unit unitSource, String invokeStmt, cPDG dest) {
     this.source = source;
     this.unitSource = unitSource;
+    this.invokeStmt = invokeStmt;
     this.dest = dest;
     this.isLib = false;
   }
 
-  public SDGEdge(cPDG source, Unit unitSource, cPDG dest, boolean isLib) {
+  public SDGEdge(cPDG source, Unit unitSource, String invokeStmt, cPDG dest, boolean isLib) {
     this.source = source;
     this.unitSource = unitSource;
+    this.invokeStmt = invokeStmt;
     this.dest = dest;
     this.isLib = isLib;
   }
 
   public cPDG getSource() {
     return this.source;
+  }
+
+  public String getInvokeStmt() {
+    return this.invokeStmt;
   }
 
   public cPDG getDest() {

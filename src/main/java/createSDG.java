@@ -119,7 +119,8 @@ public class createSDG {
 
             //System.out.println("\t\tmethod " + m.getName());
 
-            String fileName = cl.getName() + "_" + m.getName() +
+            String fileName = cl.getName() + "_" +
+              m.getName() +
               m.getParameterTypes().toString().replaceAll(" ", "")
                 .replaceAll("(?<!(byte|java.lang.String|java.lang.Object|\\[\\]|int|boolean))\\[", "(")
                 .replaceAll("(?<!(byte|java.lang.String|java.lang.Object|int|boolean|\\[\\])\\[)\\]", ")");
@@ -177,7 +178,7 @@ public class createSDG {
             //PDGdotGraph.plot(outputPath + "/graphs/PDGs/" + fileName + ".dot");
 
             //System.out.print("\t\t\tGENERATING cPDG...");
-            cPDG cPDG = new cPDG(cfg, fileName);
+            cPDG cPDG = new cPDG(cfg, fileName, cl.getName(), m.getName());
             //System.out.println("SUCCESS!");
             //cPDGToDotGraph cpdgToDot = new cPDGToDotGraph(cPDG.getRootNode(), cPDG.getName());
             //DotGraph cPDGdotGraph = cpdgToDot.drawcPDG();
@@ -209,6 +210,27 @@ public class createSDG {
     soot.Main.main(sootArgs);
 
     sdg.matchInvokecPDG();
+
+    DotGraph SDGdotGraph = sdg.drawcSDG();
+    checkAndCreateFolder(outputPath + "/graphs/SDG");
+    SDGdotGraph.plot(outputPath + "/graphs/SDG/anSDG.dot");
+
+    String ccs = sdg.generateCCS();
+    checkAndCreateFolder(outputPath + "/graphs/CCS");
+    try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/anSDG.ccs")) {
+      out.println(ccs);
+    } catch (FileNotFoundException e){
+      System.err.println(e);
+      System.exit(1);
+    }
+    String simpleCcs = sdg.generateSimpleCCS();
+    checkAndCreateFolder(outputPath + "/graphs/CCS");
+    try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/anSDGsimple.ccs")) {
+      out.println(simpleCcs);
+    } catch (FileNotFoundException e){
+      System.err.println(e);
+      System.exit(1);
+    }
 
   }
 
