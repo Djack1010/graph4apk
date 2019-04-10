@@ -12,12 +12,14 @@ public class SDG {
 
   private Map<String, cPDG> cPDGAvailable;
   private Set<String> notActiveBodycPDG;
+  private Set<String> failedPDG;
   private Map<cPDG, Set<SDGEdge>> sdg;
   private DotGraph dotGraph = null;
 
   public SDG() {
     this.cPDGAvailable = new HashMap<>();
     this.notActiveBodycPDG = new HashSet<>();
+    this.failedPDG = new HashSet<>();
     this.sdg = new HashMap<>();
   }
 
@@ -28,6 +30,8 @@ public class SDG {
   public void addNotActiveBody(String name) {
     this.notActiveBodycPDG.add(name);
   }
+
+  public void addFailedPDG(cPDG cpdg) { this.failedPDG.add(cpdg.getFullName()); }
 
   public DotGraph drawcSDG() {
     this.dotGraph = new DotGraph("SDG");
@@ -172,7 +176,8 @@ public class SDG {
     int notActiveBody = 0;
     int failed = 0;
     int tot = 0;
-    System.err.println("INFO -> tot_cPDG: " + this.cPDGAvailable.size() + " notActiveBody: " + this.notActiveBodycPDG.size());
+    System.out.println("INFO -> available_cPDG: " + this.cPDGAvailable.size() + " notActiveBody: " + this.notActiveBodycPDG.size()
+      + " failedPDG: " + this.failedPDG.size());
     for (Map.Entry<String, cPDG> entrycPDG : this.cPDGAvailable.entrySet()) {
       Set<SDGEdge> tempSDGEdgeSet = new HashSet<SDGEdge>();
       for (Map.Entry<String, Unit> entryInvoke : entrycPDG.getValue().getInvokeStmt().entrySet()) {
@@ -197,8 +202,9 @@ public class SDG {
         this.sdg.put(entrycPDG.getValue(), tempSDGEdgeSet);
     }
     int identified = matched + lib + notActiveBody;
-    System.err.println("MATCHED: " + matched + " LIB: " + lib + " NotActiveBody: " + notActiveBody + " FAILED: " + failed);
-    System.err.println("IDENTIFIED: " + identified + " OUT OF: " + tot);
+    System.out.println("MATCHED: " + matched + " LIB: " + lib + " NotActiveBody: " + notActiveBody + " FAILED: " + failed);
+    float percentage = ((float) identified/ (float) tot) * 100;
+    System.out.println("IDENTIFIED: " + identified + " OUT OF: " + tot + " --> " + percentage + "%");
   }
 
   private boolean libCall(String invoke) {

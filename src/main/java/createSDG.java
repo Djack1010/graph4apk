@@ -3,6 +3,8 @@ import completePDG.cPDG;
 import soot.*;
 import soot.options.Options;
 import soot.toolkits.graph.BriefUnitGraph;
+import soot.toolkits.graph.ExceptionalUnitGraph;
+import soot.toolkits.graph.TrapUnitGraph;
 import soot.toolkits.graph.UnitGraph;
 import soot.toolkits.graph.pdg.HashMutablePDG;
 import soot.toolkits.graph.pdg.ProgramDependenceGraph;
@@ -30,6 +32,8 @@ public class createSDG {
   private static Set<String> METH_JAIL = new HashSet<>(Arrays.asList("com.admogo.DataBackup_getDataList"));
   private static SDG sdg = new SDG();
 
+  private static String SDGFileName = null;
+
   public static void main(String[] args) {
 
     String[] sootArgs = null;
@@ -38,7 +42,10 @@ public class createSDG {
       //pass arguments for Soot.Main
       sootArgs = new String[]{
         //"-allow-phantom-refs",
-        "-pp",
+        "-p",
+        "cg",
+        //"-pp",
+        "all-reachable:true",
         "-no-bodies-for-excluded",
         //"-full-resolver",
         "-w",
@@ -66,9 +73,12 @@ public class createSDG {
         "/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms",
         "-process-dir",
         //"/home/giacomo/Documents/merc_proj/apk_test/0ad370eab2ac647a932ad18fbb55d098.apk"
-        "/home/giacomo/Documents/merc_proj/apk_test/0d4a16a36a62e4d9bc6e466729a55094.apk"
+        //"/home/giacomo/Documents/merc_proj/apk_test/0d4a16a36a62e4d9bc6e466729a55094.apk"
+        //"/home/giacomo/Documents/merc_proj/apk_db/0ad370eab2ac647a932ad18fbb55d098.apk"
+        "/home/giacomo/Documents/merc_proj/apk_db/toTest/Jollyserv_2BE48FB3B8D89F64A18C459067AF3695.apk"
       };
-    }
+    } else
+      sootArgs = handleArgs(args);
 
 
     //prefer Android APK files// -src-prec apk
@@ -138,6 +148,7 @@ public class createSDG {
             numTestMeth++;
 
             //Print Jimple code of Body method on file
+            /**
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
             Printer.v().printTo(body, pw);
@@ -153,12 +164,15 @@ public class createSDG {
             } catch (Exception e) {
               e.printStackTrace();
             }
+             **/
 
             //Represents a CFG where the nodes are Unit instances,
             // and where no edges are included to account for control flow associated with exceptions.
             //TODO: move to better CFG to handle exceptions (see ExceptionalUnitGraph or TrapUnitGraph)
             //System.out.print("\t\t\tGENERATING CFG...");
-            UnitGraph cfg = new BriefUnitGraph(body);
+            //UnitGraph cfg = new BriefUnitGraph(body);
+            UnitGraph cfg = new ExceptionalUnitGraph(body);
+            //UnitGraph cfg = new TrapUnitGraph(body);
             ///**
             //System.out.println("SUCCESS!");
             //CFGToDotGraph cfgToDot = new CFGToDotGraph();
@@ -185,7 +199,10 @@ public class createSDG {
             //checkAndCreateFolder(outputPath + "/graphs/cPDGs");
             //cPDGdotGraph.plot(outputPath + "/graphs/cPDGs/" + cPDG.getName() + ".dot");
 
-            sdg.addcPDG(cPDG);
+            if ( cPDG.isBuilt() )
+              sdg.addcPDG(cPDG);
+            else
+              sdg.addFailedPDG(cPDG);
 
             //System.out.print("\t\t\t\tGENERATING CCS...");
             //String ccs = cPDG.generateCCS();
@@ -211,13 +228,17 @@ public class createSDG {
 
     sdg.matchInvokecPDG();
 
+    if (SDGFileName == null){
+      SDGFileName="anSDG";
+    }
+
     DotGraph SDGdotGraph = sdg.drawcSDG();
     checkAndCreateFolder(outputPath + "/graphs/SDG");
-    SDGdotGraph.plot(outputPath + "/graphs/SDG/anSDG.dot");
+    SDGdotGraph.plot(outputPath + "/graphs/SDG/" + SDGFileName + ".dot");
 
     String ccs = sdg.generateCCS();
     checkAndCreateFolder(outputPath + "/graphs/CCS");
-    try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/anSDG.ccs")) {
+    try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + SDGFileName + ".ccs")) {
       out.println(ccs);
     } catch (FileNotFoundException e){
       System.err.println(e);
@@ -225,7 +246,7 @@ public class createSDG {
     }
     String simpleCcs = sdg.generateSimpleCCS();
     checkAndCreateFolder(outputPath + "/graphs/CCS");
-    try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/anSDGsimple.ccs")) {
+    try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + SDGFileName + "simple.ccs")) {
       out.println(simpleCcs);
     } catch (FileNotFoundException e){
       System.err.println(e);
@@ -244,6 +265,54 @@ public class createSDG {
   private static boolean checkFileExist(String path) {
     File f = new File(path);
     return f.exists() && !f.isDirectory();
+  }
+
+  private static String[] handleArgs(String[] args){
+    String [] myArrayArgs = new String[args.length];
+    int i=0;
+    int j=0;
+    while(i<args.length){
+      switch (args[i]){
+        case "-p":
+        case "cg":
+        case "-pp":
+        case "all-reachable:true":
+        case "-w":
+        case "-no-bodies-for-excluded":
+        case "-full-resolver":
+          myArrayArgs[j]=args[i];
+          j++;
+          break;
+        case "-cp":
+        case "-process-dir":
+        case "-android-jars":
+          myArrayArgs[j]=args[i];
+          i++;
+          j++;
+          myArrayArgs[j]=args[i];
+          j++;
+          break;
+        case "-mainClass":
+          i++;
+          myArrayArgs[j]=args[i];
+          j++;
+          break;
+        case "-SDGFileName":
+          i++;
+          SDGFileName=args[i];
+          break;
+        default:
+          System.err.println("MainCPG:ERROR:Invalid arguments " + args[i] + ", exiting...");
+          System.exit(0);
+          break;
+      }
+      i++;
+    }
+    if(j!=myArrayArgs.length){
+      String[] tempArray = new String[j];
+      System.arraycopy( myArrayArgs, 0, tempArray, 0, tempArray.length );
+      return tempArray;
+    }else return myArrayArgs;
   }
 
 }

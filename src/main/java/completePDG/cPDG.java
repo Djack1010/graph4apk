@@ -17,11 +17,13 @@ import java.util.regex.Pattern;
 public class cPDG {
 
   private int unId;
+  private boolean built = false;
   private String cPDGFullName;
   private String cPDGClassName;
   private String cPDGMethodName;
   private cPDGNode rootNode;
   private UnitGraph unitGraph;
+  private ProgramDependenceGraph pdg;
   private Set<Unit> visitedStmt;
   private Map<String, Unit> invokeStmt;
   private Map<Integer, cPDGNode> cPDGNodes;
@@ -45,8 +47,14 @@ public class cPDG {
 
     if (this.unitGraph.getHeads().size() == 0) {
       System.err.println("ERROR: cfg has no entry point");
-    } else
+    }
+
+    try {
+      this.pdg = new HashMutablePDG(this.unitGraph);
       createcPDG();
+    } catch (RuntimeException e){
+      System.err.println("ERROR in generating PDG");
+    }
 
   }
 
@@ -56,7 +64,10 @@ public class cPDG {
     }
     createPDGDataEdges();
     createPDGControlEdges();
+    this.built = true;
   }
+
+  public boolean isBuilt() { return this.built; }
 
   public cPDGNode getRootNode() {
     return this.rootNode;
@@ -163,8 +174,10 @@ public class cPDG {
 
       Unit defUnit = gIt.next();
       int defUnitID = findcPDGNode(defUnit);
-      if (defUnitID < 0)
-        System.err.println("defUnit not found in cPDG!");
+      if (defUnitID < 0) {
+        System.err.println("defUnit '" + defUnit.toString() + "' not found in cPDG!");
+        continue;
+      }
       SmartLocalDefs des = new SmartLocalDefs(this.unitGraph, s); // defs of local variables
       SimpleLocalUses uses = new SimpleLocalUses(this.unitGraph, des);
 
@@ -184,7 +197,6 @@ public class cPDG {
   }
 
   private void createPDGControlEdges() {
-    ProgramDependenceGraph pdg = new HashMutablePDG(this.unitGraph);
     Iterator<PDGNode> iteraPDG = pdg.iterator();
     while (iteraPDG.hasNext()) {
       PDGNode node = iteraPDG.next();
@@ -261,19 +273,20 @@ public class cPDG {
           String invokeName = node.toString().replaceAll("\\$", "");
           String regex = "^(interface|virtual|static|special)invoke " + //start line, invoke type
             "([a-zA-Z0-9]+\\.)?" + // nameClass. -> not mandatory, if attribute of a class but can be also just method
-            "<([a-zA-Z0-9_]+\\.)+([a-zA-Z0-9_]+)?: " + // name.of.the.package: -> apparently, can also be 'name.package.'
+            "<[a-zA-Z0-9_.]+: " + // name.of.the.package: -> apparently, can also be 'name.package.'
             "[a-zA-Z0-9\\.\\[\\]]+ " + // returnType -> can be primitive (boolean, int) but also class (java.lang.String)
             "([a-zA-Z0-9_]+|<init>){1}" + // nameOfTheMethod
-            "\\([a-zA-Z0-9\\.,_\\[\\]]*\\)>" + // parametersType -> list of parameters type (int,byte[],com.some_class)
+            "\\([a-zA-Z0-9\\.,_'\\[\\]]*\\)>" + // parametersType -> list of parameters type (int,byte[],com.some_class)
             "\\(.*\\)$"; // parameters and end of line
 
           if (!Pattern.matches(regex, invokeName)) {
             System.err.println("InvokeStmt does not match the regex");
             System.err.println(invokeName);
             for (int i = 0; i < invokeName.length(); i++) {
-              String temp = i != invokeName.length() - 1 ?
-                invokeName.substring(0, i) + invokeName.substring(i + 1) :
-                invokeName.substring(0, i);
+              String temp = invokeName.replaceAll(String.valueOf(invokeName.charAt(i)), "");
+              //String temp = i != invokeName.length() - 1 ?
+              //  invokeName.substring(0, i) + invokeName.substring(i + 1) :
+              //  invokeName.substring(0, i);
               if (Pattern.matches(regex, temp)) {
                 System.err.println("FAILURE CAUSED by char at position: " + i + " -> '" + invokeName.charAt(i) + "'");
                 break;
