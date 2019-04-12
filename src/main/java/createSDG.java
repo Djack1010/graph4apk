@@ -73,7 +73,7 @@ public class createSDG {
         "/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms",
         "-process-dir",
         //"/home/giacomo/Documents/merc_proj/apk_db/toTest/2EED7318CA564A909E75AD616CAD5CDF.apk"
-        "/home/giacomo/Documents/merc_proj/apk_db/toTest/4a56c7abdc455c82e95753bdb1934285.apk"
+        "/home/giacomo/Documents/merc_proj/apk_db/OK/0d4a16a36a62e4d9bc6e466729a55094.apk"
       };
     } else
       sootArgs = handleArgs(args);

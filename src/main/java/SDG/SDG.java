@@ -126,7 +126,7 @@ public class SDG {
       if (this.sdg.get(entrycPDG.getValue())==null)
         continue;
 
-      String tempProc = "proc " + entrycPDG.getValue().getFullName().replaceAll("\\.","-") + "=";
+      String tempProc = "proc " + cleanBadCharacterCCS(entrycPDG.getValue().getFullName()) + "=";
       boolean init = true;
       boolean valid = false;
 
@@ -139,15 +139,15 @@ public class SDG {
           tempProc = tempProc + "+";
 
         if ( edge.getDest() == null  && edge.isLib())
-          tempProc = tempProc + "e.LibCall(" + edge.getInvokeStmt().replaceAll("\\.","-") + ")";
+          tempProc = tempProc + "e.LibCall*" + cleanBadCharacterCCS(edge.getInvokeStmt()) + "*";
         else if (edge.getDest() == null  && !edge.isLib() ){
           valid=true;
           tempProc = tempProc + "e.NotActiveBody";
         } else if (edge.getDest() != null){
           valid=true;
-          tempProc = tempProc + "e." + edge.getDest().getFullName().replaceAll("\\.","-");
-          this.dotGraph.drawEdge(String.valueOf(entrycPDG.getValue().getFullName().replaceAll("\\.","-")),
-            edge.getDest().getFullName().replaceAll("\\.","-"));
+          tempProc = tempProc + "e." + cleanBadCharacterCCS(edge.getDest().getFullName());
+          this.dotGraph.drawEdge(String.valueOf(cleanBadCharacterCCS(entrycPDG.getValue().getFullName())),
+            cleanBadCharacterCCS(edge.getDest().getFullName()));
         }
 
       }
@@ -155,10 +155,10 @@ public class SDG {
       if(valid) {
         toReturn = toReturn + tempProc + "\n\n";
         if (supInit)
-          startingProc = startingProc + "e." +entrycPDG.getValue().getFullName().replaceAll("\\.","-");
+          startingProc = startingProc + "e." + cleanBadCharacterCCS(entrycPDG.getValue().getFullName());
         else {
           supInit=false;
-          startingProc = startingProc + "+e." + entrycPDG.getValue().getFullName().replaceAll("\\.", "-");
+          startingProc = startingProc + "+e." + cleanBadCharacterCCS(entrycPDG.getValue().getFullName());
         }
       }
 
@@ -168,6 +168,11 @@ public class SDG {
     //toReturn = toReturn + "proc " + this.getFullName() + "1=return.nil";
     return startingProc + toReturn;
 
+  }
+
+  private String cleanBadCharacterCCS(String s){
+    return s.replaceAll("<", "").replaceAll(">", "").replaceAll("\\(", "-_-").replaceAll("\\)", "-_-")
+      .replaceAll("\\[", "-__-").replaceAll("]", "-__-").replaceAll(",", "_").replaceAll("\\.", "-");
   }
 
   public void matchInvokecPDG() {
