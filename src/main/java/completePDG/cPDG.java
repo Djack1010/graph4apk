@@ -273,7 +273,7 @@ public class cPDG {
           String invokeName = node.toString().replaceAll("\\$", "");
           String regex = "^(interface|virtual|static|special)invoke " + //start line, invoke type
             "([a-zA-Z0-9]+\\.)?" + // nameClass. -> not mandatory, if attribute of a class but can be also just method
-            "<[a-zA-Z0-9_.]+: " + // name.of.the.package: -> apparently, can also be 'name.package.'
+            "<[a-zA-Z0-9_.']+: " + // name.of.the.package: -> apparently, can also be 'name.package.'
             "[a-zA-Z0-9\\.\\[\\]]+ " + // returnType -> can be primitive (boolean, int) but also class (java.lang.String)
             "([a-zA-Z0-9_]+|<init>){1}" + // nameOfTheMethod
             "\\([a-zA-Z0-9\\.,_'\\[\\]]*\\)>" + // parametersType -> list of parameters type (int,byte[],com.some_class)

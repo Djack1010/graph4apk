@@ -22,7 +22,7 @@ ANDRJAR="-android-jars /home/giacomo/IdeaProjects/graph4apk/src/main/resources/a
 RUN="$JAVAPATH $ENCODING $CPATH $CLASSTORUN $ARGS $SOOTCP $ANDRJAR"
 
 start=$(date +%s)
-echo "-----  ANALYZING $1  -----" >> $SCRIPTPATH/runResults/res${TIMESTAMP}.txt
+echo "-----  ANALYZING $4  -----" >> $SCRIPTPATH/runResults/res${TIMESTAMP}.txt
 eval "$RUN $1 $2 $3 $4 >> $SCRIPTPATH/runResults/res${TIMESTAMP}.txt 2>> $SCRIPTPATH/runResults/err${TIMESTAMP}.txt"
 end=$(date +%s)
 runtime=$(($end-$start))

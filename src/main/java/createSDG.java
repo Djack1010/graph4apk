@@ -51,31 +51,29 @@ public class createSDG {
         "-w",
         "-cp",
         "." +
-          //":/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/rt.jar" +
-          //":/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/jce.jar" +
-          //":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-16/android.jar" +
-          //":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-15/android.jar" +
-          //":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-14/android.jar" +
-          //":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-13/android.jar" +
-          //":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-12/android.jar" +
-          //":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-11/android.jar" +
-          //":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-10/android.jar" +
-          //":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-9/android.jar" +
-          //":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-8/android.jar" +
-          //":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-7/android.jar" +
-          //":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-6/android.jar" +
-          //":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-5/android.jar" +
-          //":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-4/android.jar" +
-          //":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-3/android.jar" +
+          ":/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/rt.jar" +
+          ":/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/jce.jar" +
+          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-16/android.jar" +
+          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-15/android.jar" +
+          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-14/android.jar" +
+          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-13/android.jar" +
+          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-12/android.jar" +
+          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-11/android.jar" +
+          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-10/android.jar" +
+          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-9/android.jar" +
+          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-8/android.jar" +
+          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-7/android.jar" +
+          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-6/android.jar" +
+          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-5/android.jar" +
+          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-4/android.jar" +
+          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-3/android.jar" +
           ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-17/android.jar" +
           ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-17/android-17-api.jar",
         "-android-jars",
         "/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms",
         "-process-dir",
-        //"/home/giacomo/Documents/merc_proj/apk_test/0ad370eab2ac647a932ad18fbb55d098.apk"
-        //"/home/giacomo/Documents/merc_proj/apk_test/0d4a16a36a62e4d9bc6e466729a55094.apk"
-        //"/home/giacomo/Documents/merc_proj/apk_db/0ad370eab2ac647a932ad18fbb55d098.apk"
-        "/home/giacomo/Documents/merc_proj/apk_db/toTest/Jollyserv_2BE48FB3B8D89F64A18C459067AF3695.apk"
+        //"/home/giacomo/Documents/merc_proj/apk_db/toTest/2EED7318CA564A909E75AD616CAD5CDF.apk"
+        "/home/giacomo/Documents/merc_proj/apk_db/toTest/4a56c7abdc455c82e95753bdb1934285.apk"
       };
     } else
       sootArgs = handleArgs(args);
@@ -233,8 +231,8 @@ public class createSDG {
     }
 
     DotGraph SDGdotGraph = sdg.drawcSDG();
-    checkAndCreateFolder(outputPath + "/graphs/SDG");
-    SDGdotGraph.plot(outputPath + "/graphs/SDG/" + SDGFileName + ".dot");
+    //checkAndCreateFolder(outputPath + "/graphs/SDG");
+    //SDGdotGraph.plot(outputPath + "/graphs/SDG/" + SDGFileName + ".dot");
 
     String ccs = sdg.generateCCS();
     checkAndCreateFolder(outputPath + "/graphs/CCS");
