@@ -19,7 +19,19 @@
                 </configuration>
             </plugin>
         </plugins>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
     </build>
+
+    <properties>
+        <project.rootPath>/home/djack/local_repositories/graph4apk</project.rootPath>
+    </properties>
 
     <dependencies>
     <dependency>
@@ -28,7 +40,7 @@
         <version>3.3.0</version>
         <scope>system</scope>
         <systemPath>
-            /home/giacomo/local_repo/soot/target/sootclasses-trunk-jar-with-dependencies.jar
+            ${project.rootPath}/lib/sootclasses-trunk-jar-with-dependencies.jar
         </systemPath>
     </dependency>
     </dependencies>

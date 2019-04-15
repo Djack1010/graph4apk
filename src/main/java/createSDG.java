@@ -13,16 +13,13 @@ import soot.util.dot.DotGraph;
 import utility.PDGToDotGraph;
 import utility.cPDGToDotGraph;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.*;
 import java.util.*;
 
 public class createSDG {
 
   //PATHs
-  private static String outputPath = "/home/giacomo/IdeaProjects/graph4apk/results";
+  private static String outputPath = "/home/djack/local_repositories/graph4apk/results";
 
   //TEST, set to 0 for analyze all classes and methods
   private static int MAX_TEST_CLASS = 0;
@@ -51,29 +48,29 @@ public class createSDG {
         "-w",
         "-cp",
         "." +
-          ":/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/rt.jar" +
-          ":/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/jce.jar" +
-          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-16/android.jar" +
-          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-15/android.jar" +
-          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-14/android.jar" +
-          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-13/android.jar" +
-          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-12/android.jar" +
-          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-11/android.jar" +
-          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-10/android.jar" +
-          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-9/android.jar" +
-          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-8/android.jar" +
-          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-7/android.jar" +
-          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-6/android.jar" +
-          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-5/android.jar" +
-          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-4/android.jar" +
-          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-3/android.jar" +
-          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-17/android.jar" +
-          ":/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms/android-17/android-17-api.jar",
+          //":/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/rt.jar" +
+          //":/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/jce.jar" +
+          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-16/android.jar" +
+          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-15/android.jar" +
+          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-14/android.jar" +
+          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-13/android.jar" +
+          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-12/android.jar" +
+          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-11/android.jar" +
+          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-10/android.jar" +
+          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-9/android.jar" +
+          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-8/android.jar" +
+          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-7/android.jar" +
+          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-6/android.jar" +
+          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-5/android.jar" +
+          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-4/android.jar" +
+          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-3/android.jar" +
+          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-17/android.jar" +
+          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-17/android-17-api.jar",
         "-android-jars",
-        "/home/giacomo/IdeaProjects/graph4apk/src/main/resources/android-platforms",
+        "/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms",
         "-process-dir",
         //"/home/giacomo/Documents/merc_proj/apk_db/toTest/2EED7318CA564A909E75AD616CAD5CDF.apk"
-        "/home/giacomo/Documents/merc_proj/apk_db/OK/0d4a16a36a62e4d9bc6e466729a55094.apk"
+        "/home/djack/local_repositories/graph4apk/apk_db/OK/0d4a16a36a62e4d9bc6e466729a55094.apk"
       };
     } else
       sootArgs = handleArgs(args);
