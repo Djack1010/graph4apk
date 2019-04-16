@@ -80,11 +80,11 @@ public class SDG {
         continue;
 
       if (init)
-        startingProc = startingProc + "e." +entrycPDG.getValue().getFullName().replaceAll("\\.","-");
+        startingProc = startingProc + "e." + clean4CCS(entrycPDG.getValue().getFullName());
       else
-        startingProc = startingProc + "+e." +entrycPDG.getValue().getFullName().replaceAll("\\.","-");
+        startingProc = startingProc + "+e." + clean4CCS(entrycPDG.getValue().getFullName());
 
-      toReturn = toReturn + "proc " + entrycPDG.getValue().getFullName().replaceAll("\\.","-") + "=";
+      toReturn = toReturn + "proc " + clean4CCS(entrycPDG.getValue().getFullName()) + "=";
       init = true;
 
       Set<SDGEdge> tempSDGEdgeSet = new HashSet<SDGEdge>();
@@ -96,13 +96,13 @@ public class SDG {
           toReturn = toReturn + "+";
 
         if ( edge.getDest() == null  && edge.isLib())
-          toReturn = toReturn + "e.LibCall(" + edge.getInvokeStmt().replaceAll("\\.","-") + ")";
+          toReturn = toReturn + "e.LibCall(" + clean4CCS(edge.getInvokeStmt()) + ")";
         else if (edge.getDest() == null  && !edge.isLib() ){
           toReturn = toReturn + "e.NotActiveBody";
         } else if (edge.getDest() != null){
-          toReturn = toReturn + "e." + edge.getDest().getFullName().replaceAll("\\.","-");
-          this.dotGraph.drawEdge(String.valueOf(entrycPDG.getValue().getFullName().replaceAll("\\.","-")),
-            edge.getDest().getFullName().replaceAll("\\.","-"));
+          toReturn = toReturn + "e." + clean4CCS(edge.getDest().getFullName());
+          this.dotGraph.drawEdge(String.valueOf(clean4CCS(entrycPDG.getValue().getFullName())),
+                  clean4CCS(edge.getDest().getFullName()));
         }
 
       }
@@ -119,47 +119,46 @@ public class SDG {
 
   public String generateSimpleCCS() {
     String startingProc = "proc StartingNode=";
-    boolean supInit=true;
+    boolean supInit = true;
     String toReturn = "";
     for (Map.Entry<String, cPDG> entrycPDG : this.cPDGAvailable.entrySet()) {
 
-      if (this.sdg.get(entrycPDG.getValue())==null)
+      if (this.sdg.get(entrycPDG.getValue()) == null)
         continue;
 
-      String tempProc = "proc " + cleanBadCharacterCCS(entrycPDG.getValue().getFullName()) + "=";
+      String tempProc = "proc " + clean4CCS(entrycPDG.getValue().getFullName()) + "=";
       boolean init = true;
       boolean valid = false;
 
       Set<SDGEdge> tempSDGEdgeSet = new HashSet<SDGEdge>();
       tempSDGEdgeSet = this.sdg.get(entrycPDG.getValue());
-      for ( SDGEdge edge : tempSDGEdgeSet) {
+      for (SDGEdge edge : tempSDGEdgeSet) {
         if (init)
           init = false;
         else
           tempProc = tempProc + "+";
 
-        if ( edge.getDest() == null  && edge.isLib())
-          tempProc = tempProc + "e.LibCall*" + cleanBadCharacterCCS(edge.getInvokeStmt()) + "*";
-        else if (edge.getDest() == null  && !edge.isLib() ){
-          valid=true;
+        if (edge.getDest() == null && edge.isLib())
+          tempProc = tempProc + "e.LibCall*" + clean4CCS(edge.getInvokeStmt()) + "*";
+        else if (edge.getDest() == null && !edge.isLib()) {
+          valid = true;
           tempProc = tempProc + "e.NotActiveBody";
-        } else if (edge.getDest() != null){
-          valid=true;
-          tempProc = tempProc + "e." + cleanBadCharacterCCS(edge.getDest().getFullName());
-          this.dotGraph.drawEdge(String.valueOf(cleanBadCharacterCCS(entrycPDG.getValue().getFullName())),
-            cleanBadCharacterCCS(edge.getDest().getFullName()));
+        } else if (edge.getDest() != null) {
+          valid = true;
+          tempProc = tempProc + "e." + clean4CCS(edge.getDest().getFullName());
+          this.dotGraph.drawEdge(String.valueOf(clean4CCS(entrycPDG.getValue().getFullName())),
+                  clean4CCS(edge.getDest().getFullName()));
         }
 
       }
 
-      if(valid) {
+      if (valid) {
         toReturn = toReturn + tempProc + "\n\n";
-        if (supInit)
-          startingProc = startingProc + "e." + cleanBadCharacterCCS(entrycPDG.getValue().getFullName());
-        else {
-          supInit=false;
-          startingProc = startingProc + "+e." + cleanBadCharacterCCS(entrycPDG.getValue().getFullName());
-        }
+        if (supInit) {
+          startingProc = startingProc + "e." + clean4CCS(entrycPDG.getValue().getFullName());
+          supInit = false;
+        } else
+          startingProc = startingProc + "+e." + clean4CCS(entrycPDG.getValue().getFullName());
       }
 
     }
@@ -170,9 +169,113 @@ public class SDG {
 
   }
 
-  private String cleanBadCharacterCCS(String s){
-    return s.replaceAll("<", "").replaceAll(">", "").replaceAll("\\(", "-_-").replaceAll("\\)", "-_-")
-      .replaceAll("\\[", "-__-").replaceAll("]", "-__-").replaceAll(",", "_").replaceAll("\\.", "-");
+  public String generateCCS_NEW() {
+    String startingProc = "proc M0=";
+    boolean init = true;
+    String toReturn = "";
+    for (Map.Entry<String, cPDG> entrycPDG : this.cPDGAvailable.entrySet()) {
+
+      if (this.sdg.get(entrycPDG.getValue())==null)
+        continue;
+
+      if (init)
+        startingProc = startingProc + clean4CCS(entrycPDG.getValue().getFullName()) + ".M"
+                + entrycPDG.getValue().getUniqueId();
+      else
+        startingProc = startingProc + "+" + clean4CCS(entrycPDG.getValue().getFullName()) + ".M"
+                + entrycPDG.getValue().getUniqueId();
+
+      toReturn = toReturn + "proc M" + entrycPDG.getValue().getUniqueId() + "=";
+      init = true;
+
+      Set<SDGEdge> tempSDGEdgeSet = new HashSet<SDGEdge>();
+      tempSDGEdgeSet = this.sdg.get(entrycPDG.getValue());
+      for ( SDGEdge edge : tempSDGEdgeSet) {
+        if (init)
+          init = false;
+        else
+          toReturn = toReturn + "+";
+
+        if ( edge.getDest() == null  && edge.isLib())
+          toReturn = toReturn + clean4CCS(edge.getInvokeStmt()) + ".LibCall";
+        else if (edge.getDest() == null  && !edge.isLib() ){
+          toReturn = toReturn + clean4CCS(edge.getInvokeStmt()) + ".NotActiveBody";
+        } else if (edge.getDest() != null){
+          toReturn = toReturn + clean4CCS(edge.getDest().getFullName()) + ".M" + edge.getDest().getUniqueId();
+          this.dotGraph.drawEdge(String.valueOf(clean4CCS(entrycPDG.getValue().getFullName())),
+                  clean4CCS(edge.getDest().getFullName()));
+        }
+
+      }
+
+      toReturn = toReturn + "\n\n";
+
+    }
+
+    startingProc = startingProc + "\n\n";
+    //toReturn = toReturn + "proc " + this.getFullName() + "1=return.nil";
+    return startingProc + toReturn;
+
+  }
+
+  public String generateSimpleCCS_NEW() {
+    String startingProc = "proc M0=";
+    boolean supInit = true;
+    String toReturn = "";
+    for (Map.Entry<String, cPDG> entrycPDG : this.cPDGAvailable.entrySet()) {
+
+      if (this.sdg.get(entrycPDG.getValue()) == null)
+        continue;
+
+      String tempProc = "proc M" + entrycPDG.getValue().getUniqueId() + "=";
+      boolean init = true;
+      boolean valid = false;
+
+      Set<SDGEdge> tempSDGEdgeSet = new HashSet<SDGEdge>();
+      tempSDGEdgeSet = this.sdg.get(entrycPDG.getValue());
+      for (SDGEdge edge : tempSDGEdgeSet) {
+        if (init)
+          init = false;
+        else
+          tempProc = tempProc + "+";
+
+        if (edge.getDest() == null && edge.isLib())
+          tempProc = tempProc + clean4CCS(edge.getInvokeStmt()) + ".LibCall";
+        else if (edge.getDest() == null && !edge.isLib()) {
+          valid = true;
+          tempProc = tempProc + clean4CCS(edge.getInvokeStmt()) + ".NotActiveBody";
+        } else if (edge.getDest() != null) {
+          valid = true;
+          tempProc = tempProc + clean4CCS(edge.getDest().getFullName()) + ".M" + edge.getDest().getUniqueId();
+          this.dotGraph.drawEdge(String.valueOf(clean4CCS(entrycPDG.getValue().getFullName())),
+                  clean4CCS(edge.getDest().getFullName()));
+        }
+
+      }
+
+      if (valid) {
+        toReturn = toReturn + tempProc + "\n\n";
+        if (supInit) {
+          supInit = false;
+          startingProc = startingProc + clean4CCS(entrycPDG.getValue().getFullName()) + ".M"
+                  + entrycPDG.getValue().getUniqueId();
+        } else
+          startingProc = startingProc + "+" + clean4CCS(entrycPDG.getValue().getFullName()) + ".M"
+                  + entrycPDG.getValue().getUniqueId();
+      }
+
+    }
+
+    startingProc = startingProc + "\n\n";
+    //toReturn = toReturn + "proc " + this.getFullName() + "1=return.nil";
+    return startingProc + toReturn;
+
+  }
+
+  private String clean4CCS(String s){
+    return s.replaceAll("<", "").replaceAll(">", "").replaceAll("\\(", "-_-")
+            .replaceAll("\\)", "-_-").replaceAll("\\[", "-__-").replaceAll("]", "-__-")
+            .replaceAll(",", "_").replaceAll("\\.", "-").replaceAll(" ","");
   }
 
   public void matchInvokecPDG() {

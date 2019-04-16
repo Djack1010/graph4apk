@@ -87,6 +87,7 @@ public class createPDG {
         System.out.println("STARTING MY TRANSFORMATION");
 
         int numTestClas = 0;
+        int uniqueIndex=1;
 
         for (SootClass cl : Scene.v().getApplicationClasses()) {
 
@@ -172,7 +173,8 @@ public class createPDG {
             PDGdotGraph.plot(outputPath + "/graphs/PDGs/" + fileName + ".dot");
 
             System.out.print("\t\t\tGENERATING cPDG...");
-            cPDG cPDG = new cPDG(cfg, fileName, cl.getName(), m.getName());
+            cPDG cPDG = new cPDG(cfg, fileName, cl.getName(), m.getName(), uniqueIndex);
+            uniqueIndex++;
             System.out.println("SUCCESS!");
             cPDGToDotGraph cpdgToDot = new cPDGToDotGraph(cPDG.getRootNode(), cPDG.getFullName());
             DotGraph cPDGdotGraph = cpdgToDot.drawcPDG();

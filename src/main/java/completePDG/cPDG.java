@@ -16,7 +16,8 @@ import java.util.regex.Pattern;
 
 public class cPDG {
 
-  private int unId;
+  private int uniqueId;
+  private int nodeIdIncrement;
   private boolean built = false;
   private String cPDGFullName;
   private String cPDGClassName;
@@ -29,13 +30,14 @@ public class cPDG {
   private Map<Integer, cPDGNode> cPDGNodes;
 
 
-  public cPDG(UnitGraph cfg, String fname, String cname, String mname) {
+  public cPDG(UnitGraph cfg, String fname, String cname, String mname, int unId) {
 
     this.unitGraph = cfg;
     this.cPDGFullName = fname;
     this.cPDGClassName = cname;
     this.cPDGMethodName = mname;
-    this.unId = 2; //id 0 and 1 reserved for entry and exit node
+    this.uniqueId=unId;
+    this.nodeIdIncrement = 2; //id 0 and 1 reserved for entry and exit node
     this.cPDGNodes = new TreeMap<>();
     this.visitedStmt = new HashSet<>();
     this.invokeStmt = new HashMap<>();
@@ -80,6 +82,8 @@ public class cPDG {
   public String getClassName() {
     return this.cPDGClassName;
   }
+
+  public int getUniqueId() { return this.uniqueId; }
 
   public String getMethodName() {
     return this.cPDGMethodName;
@@ -140,9 +144,9 @@ public class cPDG {
     return toReturn;
   }
 
-  private int getUniqueID() {
-    int toReturn = this.unId;
-    this.unId++;
+  private int getNodeIdIncrement() {
+    int toReturn = this.nodeIdIncrement;
+    this.nodeIdIncrement++;
     return toReturn;
   }
 
@@ -154,7 +158,7 @@ public class cPDG {
       this.visitedStmt.add(unitNode);
     if (!(unitNode instanceof Stmt))
       System.err.println("NODE '" + unitNode + "' is not a statement!");
-    cPDGNode newNode = new cPDGNode(this.getUniqueID(), unitNode.toString(), this.mapStmtType(unitNode), unitNode);
+    cPDGNode newNode = new cPDGNode(this.getNodeIdIncrement(), unitNode.toString(), this.mapStmtType(unitNode), unitNode);
     this.cPDGNodes.put(newNode.getId(), newNode);
     newNode.newEdgeIn(precNode, cPDGEdge.EdgeTypes.CONTROL_FLOW);
     if (this.unitGraph.getSuccsOf(unitNode).isEmpty()) {

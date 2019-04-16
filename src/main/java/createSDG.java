@@ -94,6 +94,7 @@ public class createSDG {
         System.out.println("STARTING MY TRANSFORMATION");
 
         int numTestClas = 0;
+        int uniqueIndex=1;
 
         for (SootClass cl : Scene.v().getApplicationClasses()) {
 
@@ -187,7 +188,8 @@ public class createSDG {
             //PDGdotGraph.plot(outputPath + "/graphs/PDGs/" + fileName + ".dot");
 
             //System.out.print("\t\t\tGENERATING cPDG...");
-            cPDG cPDG = new cPDG(cfg, fileName, cl.getName(), m.getName());
+            cPDG cPDG = new cPDG(cfg, fileName, cl.getName(), m.getName(), uniqueIndex);
+            uniqueIndex++;
             //System.out.println("SUCCESS!");
             //cPDGToDotGraph cpdgToDot = new cPDGToDotGraph(cPDG.getRootNode(), cPDG.getName());
             //DotGraph cPDGdotGraph = cpdgToDot.drawcPDG();
@@ -243,6 +245,22 @@ public class createSDG {
     checkAndCreateFolder(outputPath + "/graphs/CCS");
     try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + SDGFileName + "simple.ccs")) {
       out.println(simpleCcs);
+    } catch (FileNotFoundException e){
+      System.err.println(e);
+      System.exit(1);
+    }
+    String ccsNEW = sdg.generateCCS_NEW();
+    checkAndCreateFolder(outputPath + "/graphs/CCS");
+    try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + SDGFileName + "NEW.ccs")) {
+        out.println(ccsNEW);
+    } catch (FileNotFoundException e){
+        System.err.println(e);
+        System.exit(1);
+    }
+    String simpleCcsNEW = sdg.generateSimpleCCS_NEW();
+    checkAndCreateFolder(outputPath + "/graphs/CCS");
+    try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + SDGFileName + "simpleNEW.ccs")) {
+      out.println(simpleCcsNEW);
     } catch (FileNotFoundException e){
       System.err.println(e);
       System.exit(1);
