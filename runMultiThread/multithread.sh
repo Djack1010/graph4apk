@@ -126,4 +126,7 @@ while [ "$(jobs | grep "Running" )" ]; do
     sleep $UPDATE
 done
 
+progrBar $FNOW $FTOT
+echo "COMPLETE!"
+
 exit

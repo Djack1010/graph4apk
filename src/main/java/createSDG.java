@@ -31,6 +31,8 @@ public class createSDG {
 
   private static String SDGFileName = null;
 
+  private static int uniqueIndex=1;
+
   public static void main(String[] args) {
 
     String[] sootArgs = null;
@@ -75,6 +77,10 @@ public class createSDG {
     } else
       sootArgs = handleArgs(args);
 
+    if (SDGFileName == null){
+      SDGFileName="anSDG";
+    }
+
 
     //prefer Android APK files// -src-prec apk
     Options.v().set_src_prec(Options.src_prec_apk);
@@ -94,7 +100,6 @@ public class createSDG {
         System.out.println("STARTING MY TRANSFORMATION");
 
         int numTestClas = 0;
-        int uniqueIndex=1;
 
         for (SootClass cl : Scene.v().getApplicationClasses()) {
 
@@ -144,23 +149,23 @@ public class createSDG {
             numTestMeth++;
 
             //Print Jimple code of Body method on file
-            /**
+
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
             Printer.v().printTo(body, pw);
             //String inputString = "public class Foo extends java.lang.Object {\n" + sw.toString() + "}";
             try {
-              checkAndCreateFolder(outputPath + "/graphs/JimpleCode");
+              checkAndCreateFolder(outputPath + "/graphs/JimpleCode/" + SDGFileName);
               //if (checkFileExist(outputPath + "/graphs/JimpleCode/" + fileName + ".jimple"))
               //System.err.println("FILE " + fileName + ".jimple ALREADY EXIST!");
-              PrintWriter out = new PrintWriter(outputPath + "/graphs/JimpleCode/"
+              PrintWriter out = new PrintWriter(outputPath + "/graphs/JimpleCode/" + SDGFileName + "/M" + uniqueIndex + "_"
                 + fileName + ".jimple", "UTF-8");
               out.println(sw.toString());
               out.close();
             } catch (Exception e) {
               e.printStackTrace();
             }
-             **/
+
 
             //Represents a CFG where the nodes are Unit instances,
             // and where no edges are included to account for control flow associated with exceptions.
@@ -201,17 +206,6 @@ public class createSDG {
             else
               sdg.addFailedPDG(cPDG);
 
-            //System.out.print("\t\t\t\tGENERATING CCS...");
-            //String ccs = cPDG.generateCCS();
-            //System.out.println("SUCCESS!");
-            //checkAndCreateFolder(outputPath + "/graphs/CCS");
-            //try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + fileName + ".ccs")) {
-            //  out.println(ccs);
-            //} catch (FileNotFoundException e){
-            //  System.err.println(e);
-            //  System.exit(1);
-            //}
-
           }
 
         }
@@ -225,14 +219,11 @@ public class createSDG {
 
     sdg.matchInvokecPDG();
 
-    if (SDGFileName == null){
-      SDGFileName="anSDG";
-    }
-
     DotGraph SDGdotGraph = sdg.drawcSDG();
     //checkAndCreateFolder(outputPath + "/graphs/SDG");
     //SDGdotGraph.plot(outputPath + "/graphs/SDG/" + SDGFileName + ".dot");
 
+    /**
     String ccs = sdg.generateCCS();
     checkAndCreateFolder(outputPath + "/graphs/CCS");
     try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + SDGFileName + ".ccs")) {
@@ -241,6 +232,8 @@ public class createSDG {
       System.err.println(e);
       System.exit(1);
     }
+     **/
+    /**
     String simpleCcs = sdg.generateSimpleCCS();
     checkAndCreateFolder(outputPath + "/graphs/CCS");
     try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + SDGFileName + "simple.ccs")) {
@@ -249,14 +242,17 @@ public class createSDG {
       System.err.println(e);
       System.exit(1);
     }
+     **/
     String ccsNEW = sdg.generateCCS_NEW();
-    checkAndCreateFolder(outputPath + "/graphs/CCS");
-    try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + SDGFileName + "NEW.ccs")) {
+    checkAndCreateFolder(outputPath + "/graphs/CCS/" + SDGFileName);
+    try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + SDGFileName
+            + "/" + SDGFileName + "_complete.ccs")) {
         out.println(ccsNEW);
     } catch (FileNotFoundException e){
         System.err.println(e);
         System.exit(1);
     }
+    /**
     String simpleCcsNEW = sdg.generateSimpleCCS_NEW();
     checkAndCreateFolder(outputPath + "/graphs/CCS");
     try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + SDGFileName + "simpleNEW.ccs")) {
@@ -264,6 +260,19 @@ public class createSDG {
     } catch (FileNotFoundException e){
       System.err.println(e);
       System.exit(1);
+    }
+     **/
+
+    for (Map.Entry<String, cPDG> entrycPDG : sdg.getcPDGAvailable().entrySet()) {
+      String ccs = entrycPDG.getValue().generateCCS();
+      checkAndCreateFolder(outputPath + "/graphs/CCS/" + SDGFileName + "/CPDG");
+      try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + SDGFileName
+              + "/CPDG/M" + entrycPDG.getValue().getUniqueId() + ".ccs")) {
+        out.println(ccs);
+      } catch (FileNotFoundException e){
+        System.err.println(e);
+        System.exit(1);
+      }
     }
 
   }

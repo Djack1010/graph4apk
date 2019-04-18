@@ -14,6 +14,8 @@ import soot.toolkits.scalar.UnitValueBoxPair;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import static utility.Utility.clean4CCS;
+
 public class cPDG {
 
   private int uniqueId;
@@ -107,7 +109,7 @@ public class cPDG {
 
       if (!entry.getValue().getEdgesOut().isEmpty()) {
 
-        toReturn = toReturn + "proc " + this.getMethodName() + entry.getValue().getId() + "=";
+        toReturn = toReturn + "proc " + getProcName(entry.getValue()) + "=";
         boolean init = true;
 
         for (cPDGEdge edge : entry.getValue().getEdgesOut()) {
@@ -118,8 +120,8 @@ public class cPDG {
             toReturn = toReturn + "+";
 
           if (edge.getEdgeType() == cPDGEdge.EdgeTypes.CONTROL_FLOW)
-            toReturn = toReturn + "f_" + edge.getDest().getStmtType()
-              + "." + this.getMethodName() + edge.getDest().getId();
+            toReturn = toReturn + "f_" + clean4CCS(edge.getDest().getStmtType())
+              + "." + getProcName(edge.getDest());
 
           else if (edge.getEdgeType() == cPDGEdge.EdgeTypes.DATA_DEPENDENCE) {
             String varFlow = null;
@@ -129,10 +131,10 @@ public class cPDG {
               varFlow = ((IdentityStmt) edge.getSource().getUnitNode()).getLeftOp().toString().replaceAll("\\$", "");
             else
               System.err.println("ERROR: Unit Node instance of " + edge.getSource().getUnitNode().getClass());
-            toReturn = toReturn + "d_" + varFlow + "." + this.getMethodName() + edge.getDest().getId();
+            toReturn = toReturn + "d_" + clean4CCS(varFlow) + "." + getProcName(edge.getDest());
 
           } else if (edge.getEdgeType() == cPDGEdge.EdgeTypes.CONTROL_DEPENDENCE)
-            toReturn = toReturn + "c." + this.getMethodName() + edge.getDest().getId();
+            toReturn = toReturn + "c." + getProcName(edge.getDest());
         }
 
         toReturn = toReturn + "\n\n";
@@ -140,8 +142,13 @@ public class cPDG {
       }
     }
 
-    toReturn = toReturn + "proc " + this.getMethodName() + "1=return.nil";
+    toReturn = toReturn + "proc " + clean4CCS(this.getMethodName())
+            + "1=return.nil";
     return toReturn;
+  }
+
+  private String getProcName(cPDGNode cpdg){
+    return clean4CCS(this.getMethodName()) + cpdg.getId();
   }
 
   private int getNodeIdIncrement() {
