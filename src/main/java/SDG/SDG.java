@@ -344,4 +344,66 @@ public class SDG {
       || invoke.startsWith("android.webkit.") || invoke.startsWith("android.widget.");
   }
 
+  public void completeAnalysis(){
+    int base = 0;
+    String name = "";
+    for (Map.Entry<String, cPDG> entrycPDG : this.cPDGAvailable.entrySet()) {
+      int temp = getConnectedMethod(entrycPDG.getKey());
+      if (temp > base){
+        name = entrycPDG.getKey();
+        base = temp;
+      }
+    }
+    System.out.println("The winner is '" + name + "' with " + String.valueOf(base) + " levels");
+  }
+
+  public int getConnectedMethod(String targetMethod){
+    if (targetMethod == null)
+      return 0;
+    if (this.cPDGAvailable.containsKey(targetMethod)) {
+      System.err.println(targetMethod);
+      cleanVisit();
+      return getLinkedMethods(this.cPDGAvailable.get(targetMethod), 1);
+    } else {
+      System.err.println(targetMethod + " NOT FOUND!");
+      return 0;
+    }
+  }
+
+  private int getLinkedMethods(cPDG target, int level){
+    Set<SDGEdge> tempSDGEdgeSet = this.sdg.get(target);
+    if ( tempSDGEdgeSet != null) {
+      for (SDGEdge edge : tempSDGEdgeSet) {
+        if (edge.isVisited())
+          continue;
+        String lvl = level + "  |_";
+        for(int i=0;i<level-1;i++){
+          lvl=lvl+"_";
+        }
+        System.err.println(lvl + " " + edge.getInvokeStmt());
+        edge.setVisited(true);
+        int toReturn = level;
+        if (edge.getDest() != null)
+          toReturn = getLinkedMethods(edge.getDest(), level+1);
+        else if (edge.isLib())
+          System.err.println("E  | LIBRARY");
+        else
+          System.err.println("E  | NOT-FOUND");
+        return toReturn;
+      }
+    } else
+      System.err.println("E  | STOP");
+    return level;
+  }
+
+  private void cleanVisit(){
+    for (Map.Entry<cPDG, Set<SDGEdge>> entrySDG : this.sdg.entrySet()) {
+      if ( entrySDG.getValue() != null ){
+        for (SDGEdge edge : entrySDG.getValue()) {
+          edge.setVisited(false);
+        }
+      }
+    }
+  }
+
 }

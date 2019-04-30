@@ -19,7 +19,8 @@ import java.util.*;
 public class createSDG {
 
   //PATHs
-  private static String outputPath = "/home/djack/local_repositories/graph4apk/results";
+  private static String rootPath = "/home/giacomo/IdeaProjects/graph4apk";
+  private static String outputPath = rootPath + "/results";
 
   //TEST, set to 0 for analyze all classes and methods
   private static int MAX_TEST_CLASS = 0;
@@ -30,6 +31,7 @@ public class createSDG {
   private static SDG sdg = new SDG();
 
   private static String SDGFileName = null;
+  private static String targetMethod = null;
 
   private static int uniqueIndex=1;
 
@@ -52,33 +54,36 @@ public class createSDG {
         "." +
           //":/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/rt.jar" +
           //":/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/jce.jar" +
-          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-16/android.jar" +
-          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-15/android.jar" +
-          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-14/android.jar" +
-          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-13/android.jar" +
-          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-12/android.jar" +
-          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-11/android.jar" +
-          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-10/android.jar" +
-          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-9/android.jar" +
-          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-8/android.jar" +
-          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-7/android.jar" +
-          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-6/android.jar" +
-          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-5/android.jar" +
-          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-4/android.jar" +
-          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-3/android.jar" +
-          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-17/android.jar" +
-          ":/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms/android-17/android-17-api.jar",
+          ":" + rootPath + "/src/main/resources/android-platforms/android-16/android.jar" +
+          ":" + rootPath + "/src/main/resources/android-platforms/android-15/android.jar" +
+          ":" + rootPath + "/src/main/resources/android-platforms/android-14/android.jar" +
+          ":" + rootPath + "/src/main/resources/android-platforms/android-13/android.jar" +
+          ":" + rootPath + "/src/main/resources/android-platforms/android-12/android.jar" +
+          ":" + rootPath + "/src/main/resources/android-platforms/android-11/android.jar" +
+          ":" + rootPath + "/src/main/resources/android-platforms/android-10/android.jar" +
+          ":" + rootPath + "/src/main/resources/android-platforms/android-9/android.jar" +
+          ":" + rootPath + "/src/main/resources/android-platforms/android-8/android.jar" +
+          ":" + rootPath + "/src/main/resources/android-platforms/android-7/android.jar" +
+          ":" + rootPath + "/src/main/resources/android-platforms/android-6/android.jar" +
+          ":" + rootPath + "/src/main/resources/android-platforms/android-5/android.jar" +
+          ":" + rootPath + "/src/main/resources/android-platforms/android-4/android.jar" +
+          ":" + rootPath + "/src/main/resources/android-platforms/android-3/android.jar" +
+          ":" + rootPath + "/src/main/resources/android-platforms/android-17/android.jar" +
+          ":" + rootPath + "/src/main/resources/android-platforms/android-17/android-17-api.jar",
         "-android-jars",
-        "/home/djack/local_repositories/graph4apk/src/main/resources/android-platforms",
+        "" + rootPath + "/src/main/resources/android-platforms",
         "-process-dir",
         //"/home/giacomo/Documents/merc_proj/apk_db/toTest/2EED7318CA564A909E75AD616CAD5CDF.apk"
-        "/home/djack/local_repositories/graph4apk/apk_db/OK/0d4a16a36a62e4d9bc6e466729a55094.apk"
+        "" + rootPath + "/apk_db/OK/0d4a16a36a62e4d9bc6e466729a55094.apk"
       };
     } else
       sootArgs = handleArgs(args);
 
     if (SDGFileName == null){
       SDGFileName="anSDG";
+    }
+    if (targetMethod == null){
+      targetMethod="com.mt.airad.llllIllIlllIIIII_onProgressChanged(android.webkit.WebView,int)";//"com.admogo.ExchangeDialog_initLWindow()";
     }
 
 
@@ -218,6 +223,8 @@ public class createSDG {
     soot.Main.main(sootArgs);
 
     sdg.matchInvokecPDG();
+    sdg.getConnectedMethod(parserToolInput(targetMethod));
+    //sdg.completeAnalysis();
 
     DotGraph SDGdotGraph = sdg.drawcSDG();
     //checkAndCreateFolder(outputPath + "/graphs/SDG");
@@ -323,6 +330,10 @@ public class createSDG {
           i++;
           SDGFileName=args[i];
           break;
+        case "-targetMethod":
+          i++;
+          targetMethod=args[i];
+          break;
         default:
           System.err.println("MainCPG:ERROR:Invalid arguments " + args[i] + ", exiting...");
           System.exit(0);
@@ -335,6 +346,10 @@ public class createSDG {
       System.arraycopy( myArrayArgs, 0, tempArray, 0, tempArray.length );
       return tempArray;
     }else return myArrayArgs;
+  }
+
+  private static String parserToolInput(String targetMethod){
+    return targetMethod;
   }
 
 }

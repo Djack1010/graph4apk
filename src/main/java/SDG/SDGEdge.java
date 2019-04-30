@@ -10,6 +10,7 @@ public class SDGEdge {
   private String invokeStmt;
   private cPDG dest;
   private boolean isLib;
+  private boolean visited = false;
 
   public SDGEdge(cPDG source, Unit unitSource, String invokeStmt, cPDG dest) {
     this.source = source;
@@ -46,6 +47,9 @@ public class SDGEdge {
   public boolean isLib() {
     return isLib;
   }
+
+  public boolean isVisited() { return this.visited; }
+  public void setVisited(boolean a) { this.visited = a; }
 
   @Override
   public int hashCode() {
