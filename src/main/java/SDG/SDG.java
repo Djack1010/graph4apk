@@ -370,30 +370,61 @@ public class SDG {
     }
   }
 
+  public int getConnectedMethod_PARSER(String targ){
+    if (targ == null)
+      return 0;
+    String targetMethod = targ.toUpperCase();
+    ArrayList<String> matched = new ArrayList<>();
+    for (Map.Entry<String, cPDG> entrycPDG : this.cPDGAvailable.entrySet()) {
+      String toEvaluate = entrycPDG.getKey().replaceAll("\\.","").replaceAll("<","")
+        .replaceAll(">","").replaceAll("\\(","").replaceAll("\\)","").toUpperCase();
+      if (targetMethod.contains(toEvaluate.split("_")[0])) {
+        String restTarget = targetMethod.split(toEvaluate.split("_")[0])[1];
+        if ( restTarget.contains(toEvaluate.split("_")[1]) )
+          matched.add(entrycPDG.getKey());
+      }
+    }
+    if ( matched.isEmpty() ) {
+      System.err.println(targ + " NOT FOUND!");
+      return 0;
+    } else {
+      for( String toLoop : matched) {
+        System.out.println(toLoop);
+        getLinkedMethods(this.cPDGAvailable.get(toLoop), 1);
+      }
+      return 1;
+    }
+  }
+
   private int getLinkedMethods(cPDG target, int level){
     Set<SDGEdge> tempSDGEdgeSet = this.sdg.get(target);
+    int toReturn = level;
     if ( tempSDGEdgeSet != null) {
       for (SDGEdge edge : tempSDGEdgeSet) {
-        if (edge.isVisited())
-          continue;
         String lvl = level + "  |_";
         for(int i=0;i<level-1;i++){
           lvl=lvl+"_";
         }
-        System.err.println(lvl + " " + edge.getInvokeStmt());
-        edge.setVisited(true);
-        int toReturn = level;
-        if (edge.getDest() != null)
-          toReturn = getLinkedMethods(edge.getDest(), level+1);
-        else if (edge.isLib())
-          System.err.println("E  | LIBRARY");
+        if (edge.isVisited()) {
+          System.out.println(lvl + " RECURSION -> " + edge.getInvokeStmt());
+          continue;
+        }
         else
-          System.err.println("E  | NOT-FOUND");
-        return toReturn;
+          edge.setVisited(true);
+
+        if (edge.getDest() != null){
+          System.out.println(lvl + " " + edge.getInvokeStmt());
+          toReturn = getLinkedMethods(edge.getDest(), level+1);
+        }
+        else if (edge.isLib())
+          System.out.println(lvl + " LIBRARY -> " + edge.getInvokeStmt());
+        else
+          System.out.println(lvl + " NOT_FOUND -> " + edge.getInvokeStmt());
+
       }
     } else
-      System.err.println("E  | STOP");
-    return level;
+      System.out.println(level + "  |-> STOP");
+    return toReturn;
   }
 
   private void cleanVisit(){

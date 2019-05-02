@@ -91,7 +91,7 @@ public class createPDG {
 
         for (SootClass cl : Scene.v().getApplicationClasses()) {
 
-          if (!CLASS_TO_TEST.equals("") && !cl.getName().replaceAll("\\$", "").equals(CLASS_TO_TEST))
+          if (!CLASS_TO_TEST.equals("") && !cl.getName().replaceAll("\\$", "DDOLLARO").equals(CLASS_TO_TEST))
             continue;
 
           int numTestMeth = 0;
@@ -107,13 +107,13 @@ public class createPDG {
 
             SootMethod m = methodIt.next();
 
-            if (!METH_TO_TEST.equals("") && !m.getName().replaceAll("\\$", "").equals(METH_TO_TEST))
+            if (!METH_TO_TEST.equals("") && !m.getName().replaceAll("\\$", "DDOLLARO").equals(METH_TO_TEST))
               continue;
 
             if (MAX_TEST_METH != 0 && numTestMeth >= MAX_TEST_METH)
               break;
 
-            if (METH_JAIL.contains(cl.getName().replaceAll("\\$", "") + "_" + m.getName().replaceAll("\\$", "")))
+            if (METH_JAIL.contains(cl.getName().replaceAll("\\$", "DDOLLARO") + "_" + m.getName().replaceAll("\\$", "DDOLLARO")))
               continue;
 
             System.out.println("\t\tmethod " + m.getName());
@@ -130,7 +130,7 @@ public class createPDG {
               m.getParameterTypes().toString().replaceAll(" ", "")
                 .replaceAll("(?<!byte)\\[", "(").replaceAll("(?<!byte\\[)\\]", ")");
 
-            fileName = fileName.replaceAll("\\$", "");
+            fileName = fileName.replaceAll("\\$", "DDOLLARO");
 
             //Print Jimple code of Body method on file
             StringWriter sw = new StringWriter();

@@ -32,6 +32,7 @@ public class createSDG {
 
   private static String SDGFileName = null;
   private static String targetMethod = null;
+  private static String targetMethodEXACT = null;
 
   private static int uniqueIndex=1;
 
@@ -74,7 +75,7 @@ public class createSDG {
         "" + rootPath + "/src/main/resources/android-platforms",
         "-process-dir",
         //"/home/giacomo/Documents/merc_proj/apk_db/toTest/2EED7318CA564A909E75AD616CAD5CDF.apk"
-        "" + rootPath + "/apk_db/OK/0d4a16a36a62e4d9bc6e466729a55094.apk"
+        "" + rootPath + "/apk_db/00ceaa5f8f9be7a9ce5ffe96b5b6fb2e7e73ad87c2f023db9fa399c40ac59b62.apk"
       };
     } else
       sootArgs = handleArgs(args);
@@ -82,9 +83,8 @@ public class createSDG {
     if (SDGFileName == null){
       SDGFileName="anSDG";
     }
-    if (targetMethod == null){
-      targetMethod="com.mt.airad.llllIllIlllIIIII_onProgressChanged(android.webkit.WebView,int)";//"com.admogo.ExchangeDialog_initLWindow()";
-    }
+
+    //targetMethodEXACT = "COREEFILETESTCLASSCOMAPPERHANDCOMMONDTOCOMMANDDDOLLAROCOMMANDSstaticvoidclinit0";
 
 
     //prefer Android APK files// -src-prec apk
@@ -108,7 +108,7 @@ public class createSDG {
 
         for (SootClass cl : Scene.v().getApplicationClasses()) {
 
-          if (!CLASS_TO_TEST.equals("") && !cl.getName().replaceAll("\\$", "").equals(CLASS_TO_TEST))
+          if (!CLASS_TO_TEST.equals("") && !cl.getName().replaceAll("\\$", "DDOLLARO").equals(CLASS_TO_TEST))
             continue;
 
           int numTestMeth = 0;
@@ -124,13 +124,13 @@ public class createSDG {
 
             SootMethod m = methodIt.next();
 
-            if (!METH_TO_TEST.equals("") && !m.getName().replaceAll("\\$", "").equals(METH_TO_TEST))
+            if (!METH_TO_TEST.equals("") && !m.getName().replaceAll("\\$", "DDOLLARO").equals(METH_TO_TEST))
               continue;
 
             if (MAX_TEST_METH != 0 && numTestMeth >= MAX_TEST_METH)
               break;
 
-            if (METH_JAIL.contains(cl.getName().replaceAll("\\$", "") + "_" + m.getName().replaceAll("\\$", "")))
+            if (METH_JAIL.contains(cl.getName().replaceAll("\\$", "DDOLLARO") + "_" + m.getName().replaceAll("\\$", "DDOLLARO")))
               continue;
 
             //System.out.println("\t\tmethod " + m.getName());
@@ -141,7 +141,12 @@ public class createSDG {
                 .replaceAll("(?<!(byte|java.lang.String|java.lang.Object|\\[\\]|int|boolean))\\[", "(")
                 .replaceAll("(?<!(byte|java.lang.String|java.lang.Object|int|boolean|\\[\\])\\[)\\]", ")");
 
-            fileName = fileName.replaceAll("\\$", "");
+            fileName = fileName.replaceAll("\\$", "DDOLLARO");
+
+            String fileNameForStoring = fileName;
+            if (fileName.length() > 100)
+              fileNameForStoring=fileName.substring(0,99);
+
 
             if (!(m.hasActiveBody())) {
               //System.err.println("\t\t\tNo active body for method " + m.getName());
@@ -155,6 +160,7 @@ public class createSDG {
 
             //Print Jimple code of Body method on file
 
+            /**
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
             Printer.v().printTo(body, pw);
@@ -164,17 +170,17 @@ public class createSDG {
               //if (checkFileExist(outputPath + "/graphs/JimpleCode/" + fileName + ".jimple"))
               //System.err.println("FILE " + fileName + ".jimple ALREADY EXIST!");
               PrintWriter out = new PrintWriter(outputPath + "/graphs/JimpleCode/" + SDGFileName + "/M" + uniqueIndex + "_"
-                + fileName + ".jimple", "UTF-8");
+                + fileNameForStoring + ".jimple", "UTF-8");
               out.println(sw.toString());
               out.close();
             } catch (Exception e) {
               e.printStackTrace();
             }
+             **/
 
 
             //Represents a CFG where the nodes are Unit instances,
             // and where no edges are included to account for control flow associated with exceptions.
-            //TODO: move to better CFG to handle exceptions (see ExceptionalUnitGraph or TrapUnitGraph)
             //System.out.print("\t\t\tGENERATING CFG...");
             //UnitGraph cfg = new BriefUnitGraph(body);
             UnitGraph cfg = new ExceptionalUnitGraph(body);
@@ -223,10 +229,19 @@ public class createSDG {
     soot.Main.main(sootArgs);
 
     sdg.matchInvokecPDG();
-    sdg.getConnectedMethod(parserToolInput(targetMethod));
+    if (targetMethod != null || targetMethodEXACT != null) {
+      System.out.println("-------- LOOKING FOR LINKED METHODS TO TARGET --------");
+      if (targetMethod != null) {
+        System.out.println("TARGET: " + targetMethod);
+        sdg.getConnectedMethod(targetMethod);
+      } else {
+        System.out.println("TARGET: " + targetMethodEXACT);
+        sdg.getConnectedMethod_PARSER(targetMethodEXACT);
+      }
+    }
     //sdg.completeAnalysis();
 
-    DotGraph SDGdotGraph = sdg.drawcSDG();
+    //DotGraph SDGdotGraph = sdg.drawcSDG();
     //checkAndCreateFolder(outputPath + "/graphs/SDG");
     //SDGdotGraph.plot(outputPath + "/graphs/SDG/" + SDGFileName + ".dot");
 
@@ -250,6 +265,7 @@ public class createSDG {
       System.exit(1);
     }
      **/
+    /**
     String ccsNEW = sdg.generateCCS_NEW();
     checkAndCreateFolder(outputPath + "/graphs/CCS/" + SDGFileName);
     try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + SDGFileName
@@ -259,6 +275,7 @@ public class createSDG {
         System.err.println(e);
         System.exit(1);
     }
+     **/
     /**
     String simpleCcsNEW = sdg.generateSimpleCCS_NEW();
     checkAndCreateFolder(outputPath + "/graphs/CCS");
@@ -270,6 +287,7 @@ public class createSDG {
     }
      **/
 
+    /**
     for (Map.Entry<String, cPDG> entrycPDG : sdg.getcPDGAvailable().entrySet()) {
       String ccs = entrycPDG.getValue().generateCCS();
       checkAndCreateFolder(outputPath + "/graphs/CCS/" + SDGFileName + "/CPDG");
@@ -281,6 +299,7 @@ public class createSDG {
         System.exit(1);
       }
     }
+     **/
 
   }
 
@@ -334,6 +353,10 @@ public class createSDG {
           i++;
           targetMethod=args[i];
           break;
+        case "-targetMethodEXACT":
+          i++;
+          targetMethodEXACT=args[i];
+          break;
         default:
           System.err.println("MainCPG:ERROR:Invalid arguments " + args[i] + ", exiting...");
           System.exit(0);
@@ -346,10 +369,6 @@ public class createSDG {
       System.arraycopy( myArrayArgs, 0, tempArray, 0, tempArray.length );
       return tempArray;
     }else return myArrayArgs;
-  }
-
-  private static String parserToolInput(String targetMethod){
-    return targetMethod;
   }
 
 }

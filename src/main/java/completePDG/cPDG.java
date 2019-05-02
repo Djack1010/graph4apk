@@ -126,9 +126,9 @@ public class cPDG {
           else if (edge.getEdgeType() == cPDGEdge.EdgeTypes.DATA_DEPENDENCE) {
             String varFlow = null;
             if (edge.getSource().getUnitNode() instanceof AssignStmt)
-              varFlow = ((AssignStmt) edge.getSource().getUnitNode()).getLeftOp().toString().replaceAll("\\$", "");
+              varFlow = ((AssignStmt) edge.getSource().getUnitNode()).getLeftOp().toString().replaceAll("\\$", "DDOLLARO");
             else if (edge.getSource().getUnitNode() instanceof IdentityStmt)
-              varFlow = ((IdentityStmt) edge.getSource().getUnitNode()).getLeftOp().toString().replaceAll("\\$", "");
+              varFlow = ((IdentityStmt) edge.getSource().getUnitNode()).getLeftOp().toString().replaceAll("\\$", "DDOLLARO");
             else
               System.err.println("ERROR: Unit Node instance of " + edge.getSource().getUnitNode().getClass());
             toReturn = toReturn + "d_" + clean4CCS(varFlow) + "." + getProcName(edge.getDest());
@@ -281,7 +281,7 @@ public class cPDG {
         if (node instanceof InvokeStmt) {
           //Example: virtualinvoke [$r5.]<cn.domob.android.ads.i: void a([android.content.Context])>([$r6])
           //[...] means not mandatory
-          String invokeName = node.toString().replaceAll("\\$", "");
+          String invokeName = node.toString().replaceAll("\\$", "DDOLLARO");
           String regex = "^(interface|virtual|static|special)invoke " + //start line, invoke type
             "([a-zA-Z0-9]+\\.)?" + // nameClass. -> not mandatory, if attribute of a class but can be also just method
             "<[a-zA-Z0-9_.']+: " + // name.of.the.package: -> apparently, can also be 'name.package.'
