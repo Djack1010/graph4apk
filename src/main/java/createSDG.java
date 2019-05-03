@@ -84,7 +84,7 @@ public class createSDG {
       SDGFileName="anSDG";
     }
 
-    //targetMethodEXACT = "COREEFILETESTCLASSCOMAPPERHANDCOMMONDTOCOMMANDDDOLLAROCOMMANDSstaticvoidclinit0";
+    //targetMethod = "COREEFILETESTCLASSCOMAPPERHANDCOMMONDTOCOMMANDDDOLLAROCOMMANDSstaticvoidclinit0";
 
 
     //prefer Android APK files// -src-prec apk
@@ -166,10 +166,10 @@ public class createSDG {
             Printer.v().printTo(body, pw);
             //String inputString = "public class Foo extends java.lang.Object {\n" + sw.toString() + "}";
             try {
-              checkAndCreateFolder(outputPath + "/graphs/JimpleCode/" + SDGFileName);
-              //if (checkFileExist(outputPath + "/graphs/JimpleCode/" + fileName + ".jimple"))
+              checkAndCreateFolder(outputPath + "/code/JimpleCode/" + SDGFileName);
+              //if (checkFileExist(outputPath + "/code/JimpleCode/" + fileName + ".jimple"))
               //System.err.println("FILE " + fileName + ".jimple ALREADY EXIST!");
-              PrintWriter out = new PrintWriter(outputPath + "/graphs/JimpleCode/" + SDGFileName + "/M" + uniqueIndex + "_"
+              PrintWriter out = new PrintWriter(outputPath + "/code/JimpleCode/" + SDGFileName + "/M" + uniqueIndex + "_"
                 + fileNameForStoring + ".jimple", "UTF-8");
               out.println(sw.toString());
               out.close();
@@ -229,15 +229,27 @@ public class createSDG {
     soot.Main.main(sootArgs);
 
     sdg.matchInvokecPDG();
+
     if (targetMethod != null || targetMethodEXACT != null) {
       System.out.println("-------- LOOKING FOR LINKED METHODS TO TARGET --------");
-      if (targetMethod != null) {
-        System.out.println("TARGET: " + targetMethod);
-        sdg.getConnectedMethod(targetMethod);
-      } else {
+
+      if (targetMethodEXACT != null) {
         System.out.println("TARGET: " + targetMethodEXACT);
-        sdg.getConnectedMethod_PARSER(targetMethodEXACT);
+        sdg.getConnectedMethod(targetMethodEXACT);
+
+      } else {
+        StringBuilder toPrint = new StringBuilder("TARGET: " + targetMethod + "\n");
+        sdg.getConnectedMethod_PARSER(targetMethod, toPrint);
+        System.out.println(toPrint);
+        checkAndCreateFolder(outputPath + "/linkedMethod");
+        try (PrintWriter out = new PrintWriter(outputPath + "/linkedMethod/" + targetMethod + ".txt")) {
+          out.println(toPrint);
+        } catch (FileNotFoundException e){
+          System.err.println(e);
+          System.exit(1);
+        }
       }
+
     }
     //sdg.completeAnalysis();
 

@@ -34,6 +34,7 @@ function usage {
     echo "LIST OF AVAILABLE OPTIONS:"
     echo "-targMeth TARGET_METHOD_NAME [Look for methods with similar name]"
     echo "-targMethEXACT TARGET_METHOD_NAME [Look for methods with that exact name]"
+    echo "-apk <absolute_path_to_apk OR relative_path_from_APK_FOLDER>"
     exit
 }
 
@@ -50,6 +51,10 @@ else
         elif [[ "${myArray[$n]}" == "-targMethEXACT" ]]; then
             n=$(($n+1))
             TARGETMETHOD="-targetMethodEXACT ${myArray[$n]}"
+            n=$(($n+1))
+        elif [[ "${myArray[$n]}" == "-apk" ]]; then
+            n=$(($n+1))
+            SINGLEAPK="${myArray[$n]}"
             n=$(($n+1))
         elif [[ "${myArray[$n]}" == "OK" ]]; then
             OK="OK"
@@ -72,6 +77,18 @@ if [ -z "$(which mvn)" ]; then
     echo "apache maven not found! Exiting..."
     exit
 fi
+
+if [ "${SINGLEAPK}" ]; then
+    if ! [ -f ${SINGLEAPK} ]; then
+        if ! [ -f $APK_FOLDER/${SINGLEAPK} ]; then
+            echo "APK not found! Exiting..."
+            exit
+        else
+            SINGLEAPK="${APK_FOLDER}/${SINGLEAPK}"
+        fi
+    fi
+fi
+
 mvn compile
 
 RUN="$JAVAPATH/bin/java $ENCODING $CPATH $CLASSTORUN $ARGS $SOOTCP $ANDRJAR"
@@ -80,13 +97,23 @@ echo "STARTING SCRIPT run.sh"
 echo $RUN
 #eval "$RUN $APKDB/0ad370eab2ac647a932ad18fbb55d098.apk"
 #exit
-for apkfile in $APK_FOLDER/*.apk; do
-    filename=$(echo ${apkfile##*/} | cut -d'.' -f 1)
-    #echo $filename
+if [ "${SINGLEAPK}" ]; then
+    filename=$(echo ${SINGLEAPK##*/} | cut -d'.' -f 1)
     start=$(date +%s)
-    echo "-----  ANALYZING $apkfile  -----"
-    eval "$RUN -process-dir $apkfile -SDGFileName $filename ${TARGETMETHOD}"
+    echo "-----  ANALYZING $SINGLEAPK  -----"
+    eval "$RUN -process-dir $SINGLEAPK -SDGFileName $filename ${TARGETMETHOD}"
     end=$(date +%s)
     runtime=$(($end-$start))
     echo "---> FINISHING $filename in $runtime sec"
-done
+else
+    for apkfile in $APK_FOLDER/*.apk; do
+        filename=$(echo ${apkfile##*/} | cut -d'.' -f 1)
+        #echo $filename
+        start=$(date +%s)
+        echo "-----  ANALYZING $apkfile  -----"
+        eval "$RUN -process-dir $apkfile -SDGFileName $filename ${TARGETMETHOD}"
+        end=$(date +%s)
+        runtime=$(($end-$start))
+        echo "---> FINISHING $filename in $runtime sec"
+    done
+fi

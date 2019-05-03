@@ -363,14 +363,14 @@ public class SDG {
     if (this.cPDGAvailable.containsKey(targetMethod)) {
       System.err.println(targetMethod);
       cleanVisit();
-      return getLinkedMethods(this.cPDGAvailable.get(targetMethod), 1);
+      return getLinkedMethods(this.cPDGAvailable.get(targetMethod), 1, new StringBuilder());
     } else {
       System.err.println(targetMethod + " NOT FOUND!");
       return 0;
     }
   }
 
-  public int getConnectedMethod_PARSER(String targ){
+  public int getConnectedMethod_PARSER(String targ, StringBuilder toPrint){
     if (targ == null)
       return 0;
     String targetMethod = targ.toUpperCase();
@@ -385,18 +385,18 @@ public class SDG {
       }
     }
     if ( matched.isEmpty() ) {
-      System.err.println(targ + " NOT FOUND!");
+      toPrint.append(" NOT FOUND!");
       return 0;
     } else {
       for( String toLoop : matched) {
-        System.out.println(toLoop);
-        getLinkedMethods(this.cPDGAvailable.get(toLoop), 1);
+        toPrint.append(toLoop + "\n");
+        getLinkedMethods(this.cPDGAvailable.get(toLoop), 1, toPrint);
       }
       return 1;
     }
   }
 
-  private int getLinkedMethods(cPDG target, int level){
+  private int getLinkedMethods(cPDG target, int level, StringBuilder toPrint){
     Set<SDGEdge> tempSDGEdgeSet = this.sdg.get(target);
     int toReturn = level;
     if ( tempSDGEdgeSet != null) {
@@ -406,24 +406,24 @@ public class SDG {
           lvl=lvl+"_";
         }
         if (edge.isVisited()) {
-          System.out.println(lvl + " RECURSION -> " + edge.getInvokeStmt());
+          toPrint.append(lvl + " RECURSION -> " + edge.getInvokeStmt() + "\n");
           continue;
         }
         else
           edge.setVisited(true);
 
         if (edge.getDest() != null){
-          System.out.println(lvl + " " + edge.getInvokeStmt());
-          toReturn = getLinkedMethods(edge.getDest(), level+1);
+          toPrint.append(lvl + " " + edge.getInvokeStmt() + "\n");
+          toReturn = getLinkedMethods(edge.getDest(), level+1, toPrint);
         }
         else if (edge.isLib())
-          System.out.println(lvl + " LIBRARY -> " + edge.getInvokeStmt());
+          toPrint.append(lvl + " LIBRARY -> " + edge.getInvokeStmt() + "\n");
         else
-          System.out.println(lvl + " NOT_FOUND -> " + edge.getInvokeStmt());
+          toPrint.append(lvl + " NOT_FOUND -> " + edge.getInvokeStmt() + "\n");
 
       }
     } else
-      System.out.println(level + "  |-> STOP");
+      toPrint.append(level + "  |-> STOP" + "\n");
     return toReturn;
   }
 
