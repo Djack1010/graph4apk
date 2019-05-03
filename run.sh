@@ -95,8 +95,7 @@ RUN="$JAVAPATH/bin/java $ENCODING $CPATH $CLASSTORUN $ARGS $SOOTCP $ANDRJAR"
 
 echo "STARTING SCRIPT run.sh"
 echo $RUN
-#eval "$RUN $APKDB/0ad370eab2ac647a932ad18fbb55d098.apk"
-#exit
+
 if [ "${SINGLEAPK}" ]; then
     filename=$(echo ${SINGLEAPK##*/} | cut -d'.' -f 1)
     start=$(date +%s)
@@ -105,10 +104,10 @@ if [ "${SINGLEAPK}" ]; then
     end=$(date +%s)
     runtime=$(($end-$start))
     echo "---> FINISHING $filename in $runtime sec"
+
 else
     for apkfile in $APK_FOLDER/*.apk; do
         filename=$(echo ${apkfile##*/} | cut -d'.' -f 1)
-        #echo $filename
         start=$(date +%s)
         echo "-----  ANALYZING $apkfile  -----"
         eval "$RUN -process-dir $apkfile -SDGFileName $filename ${TARGETMETHOD}"
@@ -116,4 +115,5 @@ else
         runtime=$(($end-$start))
         echo "---> FINISHING $filename in $runtime sec"
     done
+    
 fi
