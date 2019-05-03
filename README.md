@@ -1,15 +1,15 @@
 # graph4apk
 
-The tool graph4apk implements analysis for generating graphs from apk files, in details PDGs for each method and a basic version of an SDG (connecting all the PDG toghether trough their call statements).
+The tool graph4apk implements analysis for generating graphs from apk files, in details PDGs for each method and a basic version of an SDG (connecting all the PDGs toghether through their call statements).
 It is based on the Soot Framework.
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. Tested on Ubuntu 18.04 and Java8-OpenJDK.
 
 ### Dependencies
 
-The project needs Java8 and Soot3.3 to be run.
+The project needs Java8, Soot3.3 and Apache Maven to be run.
 The complete jar of Soot3.3 and its dependencies can be found in the "<project.rootPath>/lib" folder.
 
 ### Settings
@@ -37,6 +37,12 @@ mvn compile
 The project can be run using the script 'run.sh' in the project folder.
 ```
 ./run.sh -h
+```
+
+### EXAMPLES
+
+```
+./run.sh OK -apk 00ceaa5f8f9be7a9ce5ffe96b5b6fb2e7e73ad87c2f023db9fa399c40ac59b62.apk -targMeth COREEFILETESTCLASSCOMAPPERHANDCOMMONDTOCOMMANDDDOLLAROCOMMANDSstaticvoidclinit0
 ```
 
 ## Authors

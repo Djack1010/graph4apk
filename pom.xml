@@ -30,7 +30,7 @@
     </build>
 
     <properties>
-        <project.rootPath>/home/djack/local_repositories/graph4apk</project.rootPath>
+        <project.rootPath>/home/giacomo/IdeaProjects/graph4apk</project.rootPath>
     </properties>
 
     <dependencies>
