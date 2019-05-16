@@ -280,14 +280,14 @@ public class SDG {
 
   }
 
-  public void matchInvokecPDG() {
+  public String matchInvokecPDG() {
     int matched = 0;
     int lib = 0;
     int notActiveBody = 0;
     int failed = 0;
     int tot = 0;
-    System.out.println("INFO -> available_cPDG: " + this.cPDGAvailable.size() + " notActiveBody: " + this.notActiveBodycPDG.size()
-      + " failedPDG: " + this.failedPDG.size());
+    String toReturn = "INFO -> available_cPDG: " + this.cPDGAvailable.size() + " notActiveBody: " + this.notActiveBodycPDG.size()
+      + " failedPDG: " + this.failedPDG.size() + "\n";
     for (Map.Entry<String, cPDG> entrycPDG : this.cPDGAvailable.entrySet()) {
       Set<SDGEdge> tempSDGEdgeSet = new HashSet<SDGEdge>();
       for (Map.Entry<String, Unit> entryInvoke : entrycPDG.getValue().getInvokeStmt().entrySet()) {
@@ -312,9 +312,10 @@ public class SDG {
         this.sdg.put(entrycPDG.getValue(), tempSDGEdgeSet);
     }
     int identified = matched + lib + notActiveBody;
-    System.out.println("MATCHED: " + matched + " LIB: " + lib + " NotActiveBody: " + notActiveBody + " FAILED: " + failed);
+    toReturn+="MATCHED: " + matched + " LIB: " + lib + " NotActiveBody: " + notActiveBody + " FAILED: " + failed + "\n";
     float percentage = ((float) identified/ (float) tot) * 100;
-    System.out.println("IDENTIFIED: " + identified + " OUT OF: " + tot + " --> " + percentage + "%");
+    toReturn+="IDENTIFIED: " + identified + " OUT OF: " + tot + " --> " + percentage + "%" + "\n";
+    return toReturn;
   }
 
   private boolean libCall(String invoke) {
@@ -375,13 +376,21 @@ public class SDG {
       return 0;
     String targetMethod = targ.toUpperCase();
     ArrayList<String> matched = new ArrayList<>();
+    int matchedValue = 100000;
     for (Map.Entry<String, cPDG> entrycPDG : this.cPDGAvailable.entrySet()) {
       String toEvaluate = entrycPDG.getKey().replaceAll("\\.","").replaceAll("<","")
         .replaceAll(">","").replaceAll("\\(","").replaceAll("\\)","").toUpperCase();
       if (targetMethod.contains(toEvaluate.split("_")[0])) {
         String restTarget = targetMethod.split(toEvaluate.split("_")[0])[1];
-        if ( restTarget.contains(toEvaluate.split("_")[1]) )
-          matched.add(entrycPDG.getKey());
+        if ( restTarget.contains(toEvaluate.split("_")[1]) ) {
+          int newMatchedVal = restTarget.length()-toEvaluate.split("_")[1].length();
+          if ( newMatchedVal < matchedValue) {
+            matchedValue = newMatchedVal;
+            matched.clear();
+            matched.add(entrycPDG.getKey());
+          } else if ( newMatchedVal == matchedValue)
+            matched.add(entrycPDG.getKey());
+        }
       }
     }
     if ( matched.isEmpty() ) {

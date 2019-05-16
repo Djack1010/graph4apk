@@ -30,11 +30,16 @@ public class createSDG {
   private static Set<String> METH_JAIL = new HashSet<>(Arrays.asList("com.admogo.DataBackup_getDataList"));
   private static SDG sdg = new SDG();
 
-  private static String SDGFileName = null;
-  private static String targetMethod = null;
-  private static String targetMethodEXACT = null;
+  public static class settings {
+    public static String SDGFileName = null;
+    public static String targetMethod = null;
+    public static String targetMethodEXACT = null;
+    public static boolean genCCS = false;
+    public settings() {}
+  }
 
   private static int uniqueIndex=1;
+  private static settings runningSettings = new settings();
 
   public static void main(String[] args) {
 
@@ -80,8 +85,8 @@ public class createSDG {
     } else
       sootArgs = handleArgs(args);
 
-    if (SDGFileName == null){
-      SDGFileName="anSDG";
+    if (runningSettings.SDGFileName == null) {
+      runningSettings.SDGFileName = "anSDG";
     }
 
     //targetMethod = "COREEFILETESTCLASSCOMAPPERHANDCOMMONDTOCOMMANDDDOLLAROCOMMANDSstaticvoidclinit0";
@@ -145,7 +150,7 @@ public class createSDG {
 
             String fileNameForStoring = fileName;
             if (fileName.length() > 100)
-              fileNameForStoring=fileName.substring(0,99);
+              fileNameForStoring = fileName.substring(0, 99);
 
 
             if (!(m.hasActiveBody())) {
@@ -161,21 +166,21 @@ public class createSDG {
             //Print Jimple code of Body method on file
 
             /**
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            Printer.v().printTo(body, pw);
-            //String inputString = "public class Foo extends java.lang.Object {\n" + sw.toString() + "}";
-            try {
-              checkAndCreateFolder(outputPath + "/code/JimpleCode/" + SDGFileName);
-              //if (checkFileExist(outputPath + "/code/JimpleCode/" + fileName + ".jimple"))
-              //System.err.println("FILE " + fileName + ".jimple ALREADY EXIST!");
-              PrintWriter out = new PrintWriter(outputPath + "/code/JimpleCode/" + SDGFileName + "/M" + uniqueIndex + "_"
-                + fileNameForStoring + ".jimple", "UTF-8");
-              out.println(sw.toString());
-              out.close();
-            } catch (Exception e) {
-              e.printStackTrace();
-            }
+             StringWriter sw = new StringWriter();
+             PrintWriter pw = new PrintWriter(sw);
+             Printer.v().printTo(body, pw);
+             //String inputString = "public class Foo extends java.lang.Object {\n" + sw.toString() + "}";
+             try {
+             checkAndCreateFolder(outputPath + "/code/JimpleCode/" + SDGFileName);
+             //if (checkFileExist(outputPath + "/code/JimpleCode/" + fileName + ".jimple"))
+             //System.err.println("FILE " + fileName + ".jimple ALREADY EXIST!");
+             PrintWriter out = new PrintWriter(outputPath + "/code/JimpleCode/" + SDGFileName + "/M" + uniqueIndex + "_"
+             + fileNameForStoring + ".jimple", "UTF-8");
+             out.println(sw.toString());
+             out.close();
+             } catch (Exception e) {
+             e.printStackTrace();
+             }
              **/
 
 
@@ -212,7 +217,7 @@ public class createSDG {
             //checkAndCreateFolder(outputPath + "/graphs/cPDGs");
             //cPDGdotGraph.plot(outputPath + "/graphs/cPDGs/" + cPDG.getName() + ".dot");
 
-            if ( cPDG.isBuilt() )
+            if (cPDG.isBuilt())
               sdg.addcPDG(cPDG);
             else
               sdg.addFailedPDG(cPDG);
@@ -228,23 +233,33 @@ public class createSDG {
     //RUN SOOT
     soot.Main.main(sootArgs);
 
-    sdg.matchInvokecPDG();
+    String result = sdg.matchInvokecPDG();
+    System.out.println(result);
+    checkAndCreateFolder(outputPath + "/stats");
+    try (PrintWriter out = new PrintWriter(outputPath + "/stats/" + runningSettings.SDGFileName + ".txt")) {
+      out.println(result);
+      System.out.println("Result print on file '" + outputPath + "/stats/" + runningSettings.SDGFileName + ".txt'");
+    } catch (FileNotFoundException e) {
+      System.err.println(e);
+      System.exit(1);
+    }
 
-    if (targetMethod != null || targetMethodEXACT != null) {
+    if (runningSettings.targetMethod != null || runningSettings.targetMethodEXACT != null) {
       System.out.println("-------- LOOKING FOR LINKED METHODS TO TARGET --------");
 
-      if (targetMethodEXACT != null) {
-        System.out.println("TARGET: " + targetMethodEXACT);
-        sdg.getConnectedMethod(targetMethodEXACT);
+      if (runningSettings.targetMethodEXACT != null) {
+        System.out.println("TARGET: " + runningSettings.targetMethodEXACT);
+        sdg.getConnectedMethod(runningSettings.targetMethodEXACT);
 
       } else {
-        StringBuilder toPrint = new StringBuilder("TARGET: " + targetMethod + "\n");
-        sdg.getConnectedMethod_PARSER(targetMethod, toPrint);
+        StringBuilder toPrint = new StringBuilder("TARGET: " + runningSettings.targetMethod + "\n");
+        sdg.getConnectedMethod_PARSER(runningSettings.targetMethod, toPrint);
         System.out.println(toPrint);
         checkAndCreateFolder(outputPath + "/linkedMethod");
-        try (PrintWriter out = new PrintWriter(outputPath + "/linkedMethod/" + targetMethod + ".txt")) {
+        try (PrintWriter out = new PrintWriter(outputPath + "/linkedMethod/" + runningSettings.targetMethod + ".txt")) {
           out.println(toPrint);
-        } catch (FileNotFoundException e){
+          System.out.println("Result print on file '" + outputPath + "/linkedMethod/" + runningSettings.targetMethod + ".txt'");
+        } catch (FileNotFoundException e) {
           System.err.println(e);
           System.exit(1);
         }
@@ -258,60 +273,61 @@ public class createSDG {
     //SDGdotGraph.plot(outputPath + "/graphs/SDG/" + SDGFileName + ".dot");
 
     /**
-    String ccs = sdg.generateCCS();
-    checkAndCreateFolder(outputPath + "/graphs/CCS");
-    try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + SDGFileName + ".ccs")) {
-      out.println(ccs);
-    } catch (FileNotFoundException e){
-      System.err.println(e);
-      System.exit(1);
-    }
+     String ccs = sdg.generateCCS();
+     checkAndCreateFolder(outputPath + "/graphs/CCS");
+     try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + SDGFileName + ".ccs")) {
+     out.println(ccs);
+     } catch (FileNotFoundException e){
+     System.err.println(e);
+     System.exit(1);
+     }
      **/
     /**
-    String simpleCcs = sdg.generateSimpleCCS();
-    checkAndCreateFolder(outputPath + "/graphs/CCS");
-    try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + SDGFileName + "simple.ccs")) {
-      out.println(simpleCcs);
-    } catch (FileNotFoundException e){
-      System.err.println(e);
-      System.exit(1);
-    }
-     **/
-    /**
-    String ccsNEW = sdg.generateCCS_NEW();
-    checkAndCreateFolder(outputPath + "/graphs/CCS/" + SDGFileName);
-    try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + SDGFileName
-            + "/" + SDGFileName + "_complete.ccs")) {
-        out.println(ccsNEW);
-    } catch (FileNotFoundException e){
-        System.err.println(e);
-        System.exit(1);
-    }
-     **/
-    /**
-    String simpleCcsNEW = sdg.generateSimpleCCS_NEW();
-    checkAndCreateFolder(outputPath + "/graphs/CCS");
-    try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + SDGFileName + "simpleNEW.ccs")) {
-      out.println(simpleCcsNEW);
-    } catch (FileNotFoundException e){
-      System.err.println(e);
-      System.exit(1);
-    }
+     String simpleCcs = sdg.generateSimpleCCS();
+     checkAndCreateFolder(outputPath + "/graphs/CCS");
+     try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + SDGFileName + "simple.ccs")) {
+     out.println(simpleCcs);
+     } catch (FileNotFoundException e){
+     System.err.println(e);
+     System.exit(1);
+     }
+
+     String simpleCcsNEW = sdg.generateSimpleCCS_NEW();
+     checkAndCreateFolder(outputPath + "/graphs/CCS");
+     try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + runningSettings.SDGFileName + "simpleNEW.ccs")) {
+     out.println(simpleCcsNEW);
+     } catch (FileNotFoundException e) {
+     System.err.println(e);
+     System.exit(1);
+     }
+
      **/
 
-    /**
-    for (Map.Entry<String, cPDG> entrycPDG : sdg.getcPDGAvailable().entrySet()) {
-      String ccs = entrycPDG.getValue().generateCCS();
-      checkAndCreateFolder(outputPath + "/graphs/CCS/" + SDGFileName + "/CPDG");
-      try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + SDGFileName
-              + "/CPDG/M" + entrycPDG.getValue().getUniqueId() + ".ccs")) {
-        out.println(ccs);
-      } catch (FileNotFoundException e){
+    if (runningSettings.genCCS){
+
+      String ccsNEW = sdg.generateCCS_NEW();
+      checkAndCreateFolder(outputPath + "/graphs/CCS/" + runningSettings.SDGFileName);
+      try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + runningSettings.SDGFileName
+        + "/" + runningSettings.SDGFileName + "_complete.ccs")) {
+        out.println(ccsNEW);
+      } catch (FileNotFoundException e) {
         System.err.println(e);
         System.exit(1);
       }
+
+      for (Map.Entry<String, cPDG> entrycPDG : sdg.getcPDGAvailable().entrySet()) {
+        String ccs = entrycPDG.getValue().generateCCS();
+        checkAndCreateFolder(outputPath + "/graphs/CCS/" + runningSettings.SDGFileName + "/CPDG");
+        try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + runningSettings.SDGFileName
+          + "/CPDG/M" + entrycPDG.getValue().getUniqueId() + ".ccs")) {
+          out.println(ccs);
+        } catch (FileNotFoundException e) {
+          System.err.println(e);
+          System.exit(1);
+        }
+      }
+
     }
-     **/
 
   }
 
@@ -359,15 +375,19 @@ public class createSDG {
           break;
         case "-SDGFileName":
           i++;
-          SDGFileName=args[i];
+          runningSettings.SDGFileName=args[i];
           break;
         case "-targetMethod":
           i++;
-          targetMethod=args[i];
+          runningSettings.targetMethod=args[i];
           break;
         case "-targetMethodEXACT":
           i++;
-          targetMethodEXACT=args[i];
+          runningSettings.targetMethodEXACT=args[i];
+          break;
+        case "-genCCS":
+          i++;
+          runningSettings.genCCS=true;
           break;
         default:
           System.err.println("MainCPG:ERROR:Invalid arguments " + args[i] + ", exiting...");
