@@ -7,6 +7,11 @@ It is based on the Soot Framework.
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. Tested on Ubuntu 18.04 and Java8-OpenJDK.
 
+You can install all the dependencies by running the script
+```
+./setup.sh
+```
+
 ### Dependencies
 
 The project needs Java8, Soot3.3 and Apache Maven to be run.
@@ -14,7 +19,7 @@ The complete jar of Soot3.3 and its dependencies can be found in the "<project.r
 
 ### Settings
 
-The <projects.rootPath> property in the config file "<project.rootPath>/pom.xml" needs to be set with the base directory of the project.
+The <project.rootPath> property in the config file "<project.rootPath>/pom.xml" needs to be set with the base directory of the project.
 
 In order to run the project, all the path in "<project.rootPath>/scriptBash.config" needs to be set properly.
 ```
@@ -24,6 +29,8 @@ JAVAPATH=<ABSOLUTE PATH TO JAVA FOLDER (OPENJDK OR ORACLEJDK), EXAMPLE:'/usr/lib
 CLASSTORUN=createSDG
 APK_FOLDER=<FOLDER WITH APKs TO ANALYZE, THERE ARE SAMPLES IN 'apk_db' FOLDER>
 ```
+
+These properties can be set automatically by running the `setup.sh` script
 
 ### Compile
 
