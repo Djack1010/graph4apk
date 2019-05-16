@@ -138,7 +138,8 @@ public class createSDG {
             if (MAX_TEST_METH != 0 && numTestMeth >= MAX_TEST_METH)
               break;
 
-            if (METH_JAIL.contains(cl.getName().replaceAll("\\$", "DDOLLARO") + "_" + m.getName().replaceAll("\\$", "DDOLLARO")))
+            if (METH_JAIL.contains(cl.getName().replaceAll("\\$", "DDOLLARO") + "_"
+              + m.getName().replaceAll("\\$", "DDOLLARO")))
               continue;
 
             //System.out.println("\t\tmethod " + m.getName());
@@ -241,7 +242,8 @@ public class createSDG {
     checkAndCreateFolder(runningSettings.outputPath + "/stats");
     try (PrintWriter out = new PrintWriter(runningSettings.outputPath + "/stats/" + runningSettings.SDGFileName + ".txt")) {
       out.println(result);
-      System.out.println("Result print on file '" + runningSettings.outputPath + "/stats/" + runningSettings.SDGFileName + ".txt'");
+      System.out.println("Result print on file '" + runningSettings.outputPath + "/stats/"
+        + runningSettings.SDGFileName + ".txt'");
     } catch (FileNotFoundException e) {
       System.err.println(e);
       System.exit(1);
@@ -259,9 +261,11 @@ public class createSDG {
         sdg.getConnectedMethod_PARSER(runningSettings.targetMethod, toPrint);
         System.out.println(toPrint);
         checkAndCreateFolder(runningSettings.outputPath + "/linkedMethod");
-        try (PrintWriter out = new PrintWriter(runningSettings.outputPath + "/linkedMethod/" + runningSettings.targetMethod + ".txt")) {
+        try (PrintWriter out = new PrintWriter(runningSettings.outputPath + "/linkedMethod/"
+          + runningSettings.targetMethod + ".txt")) {
           out.println(toPrint);
-          System.out.println("Result print on file '" + runningSettings.outputPath + "/linkedMethod/" + runningSettings.targetMethod + ".txt'");
+          System.out.println("Result print on file '" + runningSettings.outputPath + "/linkedMethod/"
+            + runningSettings.targetMethod + ".txt'");
         } catch (FileNotFoundException e) {
           System.err.println(e);
           System.exit(1);
@@ -329,6 +333,9 @@ public class createSDG {
           System.exit(1);
         }
       }
+
+      System.out.println("CCS print on folder '" + runningSettings.outputPath + "/graphs/CCS/"
+        + runningSettings.SDGFileName + "/");
 
     }
 
