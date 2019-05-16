@@ -18,10 +18,6 @@ import java.util.*;
 
 public class createSDG {
 
-  //PATHs
-  private static String rootPath = "/home/giacomo/IdeaProjects/graph4apk";
-  private static String outputPath = rootPath + "/results";
-
   //TEST, set to 0 for analyze all classes and methods
   private static int MAX_TEST_CLASS = 0;
   private static int MAX_TEST_METH = 0;
@@ -34,6 +30,8 @@ public class createSDG {
     public static String SDGFileName = null;
     public static String targetMethod = null;
     public static String targetMethodEXACT = null;
+    public static String rootPath = "/home/giacomo/IdeaProjects/graph4apk";
+    public static String outputPath = "/home/giacomo/IdeaProjects/graph4apk/results";
     public static boolean genCCS = false;
     public settings() {}
   }
@@ -60,33 +58,38 @@ public class createSDG {
         "." +
           //":/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/rt.jar" +
           //":/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/jce.jar" +
-          ":" + rootPath + "/src/main/resources/android-platforms/android-16/android.jar" +
-          ":" + rootPath + "/src/main/resources/android-platforms/android-15/android.jar" +
-          ":" + rootPath + "/src/main/resources/android-platforms/android-14/android.jar" +
-          ":" + rootPath + "/src/main/resources/android-platforms/android-13/android.jar" +
-          ":" + rootPath + "/src/main/resources/android-platforms/android-12/android.jar" +
-          ":" + rootPath + "/src/main/resources/android-platforms/android-11/android.jar" +
-          ":" + rootPath + "/src/main/resources/android-platforms/android-10/android.jar" +
-          ":" + rootPath + "/src/main/resources/android-platforms/android-9/android.jar" +
-          ":" + rootPath + "/src/main/resources/android-platforms/android-8/android.jar" +
-          ":" + rootPath + "/src/main/resources/android-platforms/android-7/android.jar" +
-          ":" + rootPath + "/src/main/resources/android-platforms/android-6/android.jar" +
-          ":" + rootPath + "/src/main/resources/android-platforms/android-5/android.jar" +
-          ":" + rootPath + "/src/main/resources/android-platforms/android-4/android.jar" +
-          ":" + rootPath + "/src/main/resources/android-platforms/android-3/android.jar" +
-          ":" + rootPath + "/src/main/resources/android-platforms/android-17/android.jar" +
-          ":" + rootPath + "/src/main/resources/android-platforms/android-17/android-17-api.jar",
+          ":" + runningSettings.rootPath + "/src/main/resources/android-platforms/android-16/android.jar" +
+          ":" + runningSettings.rootPath + "/src/main/resources/android-platforms/android-15/android.jar" +
+          ":" + runningSettings.rootPath + "/src/main/resources/android-platforms/android-14/android.jar" +
+          ":" + runningSettings.rootPath + "/src/main/resources/android-platforms/android-13/android.jar" +
+          ":" + runningSettings.rootPath + "/src/main/resources/android-platforms/android-12/android.jar" +
+          ":" + runningSettings.rootPath + "/src/main/resources/android-platforms/android-11/android.jar" +
+          ":" + runningSettings.rootPath + "/src/main/resources/android-platforms/android-10/android.jar" +
+          ":" + runningSettings.rootPath + "/src/main/resources/android-platforms/android-9/android.jar" +
+          ":" + runningSettings.rootPath + "/src/main/resources/android-platforms/android-8/android.jar" +
+          ":" + runningSettings.rootPath + "/src/main/resources/android-platforms/android-7/android.jar" +
+          ":" + runningSettings.rootPath + "/src/main/resources/android-platforms/android-6/android.jar" +
+          ":" + runningSettings.rootPath + "/src/main/resources/android-platforms/android-5/android.jar" +
+          ":" + runningSettings.rootPath + "/src/main/resources/android-platforms/android-4/android.jar" +
+          ":" + runningSettings.rootPath + "/src/main/resources/android-platforms/android-3/android.jar" +
+          ":" + runningSettings.rootPath + "/src/main/resources/android-platforms/android-17/android.jar" +
+          ":" + runningSettings.rootPath + "/src/main/resources/android-platforms/android-17/android-17-api.jar",
         "-android-jars",
-        "" + rootPath + "/src/main/resources/android-platforms",
+        "" + runningSettings.rootPath + "/src/main/resources/android-platforms",
         "-process-dir",
         //"/home/giacomo/Documents/merc_proj/apk_db/toTest/2EED7318CA564A909E75AD616CAD5CDF.apk"
-        "" + rootPath + "/apk_db/00ceaa5f8f9be7a9ce5ffe96b5b6fb2e7e73ad87c2f023db9fa399c40ac59b62.apk"
+        "" + runningSettings.rootPath + "/apk_db/00ceaa5f8f9be7a9ce5ffe96b5b6fb2e7e73ad87c2f023db9fa399c40ac59b62.apk"
       };
     } else
       sootArgs = handleArgs(args);
 
     if (runningSettings.SDGFileName == null) {
       runningSettings.SDGFileName = "anSDG";
+    }
+
+    if (runningSettings.rootPath == null) {
+      System.err.println("ERROR! Set the project path, exiting...");
+      System.exit(1);
     }
 
     //targetMethod = "COREEFILETESTCLASSCOMAPPERHANDCOMMONDTOCOMMANDDDOLLAROCOMMANDSstaticvoidclinit0";
@@ -235,10 +238,10 @@ public class createSDG {
 
     String result = sdg.matchInvokecPDG();
     System.out.println(result);
-    checkAndCreateFolder(outputPath + "/stats");
-    try (PrintWriter out = new PrintWriter(outputPath + "/stats/" + runningSettings.SDGFileName + ".txt")) {
+    checkAndCreateFolder(runningSettings.outputPath + "/stats");
+    try (PrintWriter out = new PrintWriter(runningSettings.outputPath + "/stats/" + runningSettings.SDGFileName + ".txt")) {
       out.println(result);
-      System.out.println("Result print on file '" + outputPath + "/stats/" + runningSettings.SDGFileName + ".txt'");
+      System.out.println("Result print on file '" + runningSettings.outputPath + "/stats/" + runningSettings.SDGFileName + ".txt'");
     } catch (FileNotFoundException e) {
       System.err.println(e);
       System.exit(1);
@@ -255,10 +258,10 @@ public class createSDG {
         StringBuilder toPrint = new StringBuilder("TARGET: " + runningSettings.targetMethod + "\n");
         sdg.getConnectedMethod_PARSER(runningSettings.targetMethod, toPrint);
         System.out.println(toPrint);
-        checkAndCreateFolder(outputPath + "/linkedMethod");
-        try (PrintWriter out = new PrintWriter(outputPath + "/linkedMethod/" + runningSettings.targetMethod + ".txt")) {
+        checkAndCreateFolder(runningSettings.outputPath + "/linkedMethod");
+        try (PrintWriter out = new PrintWriter(runningSettings.outputPath + "/linkedMethod/" + runningSettings.targetMethod + ".txt")) {
           out.println(toPrint);
-          System.out.println("Result print on file '" + outputPath + "/linkedMethod/" + runningSettings.targetMethod + ".txt'");
+          System.out.println("Result print on file '" + runningSettings.outputPath + "/linkedMethod/" + runningSettings.targetMethod + ".txt'");
         } catch (FileNotFoundException e) {
           System.err.println(e);
           System.exit(1);
@@ -306,8 +309,8 @@ public class createSDG {
     if (runningSettings.genCCS){
 
       String ccsNEW = sdg.generateCCS_NEW();
-      checkAndCreateFolder(outputPath + "/graphs/CCS/" + runningSettings.SDGFileName);
-      try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + runningSettings.SDGFileName
+      checkAndCreateFolder(runningSettings.outputPath + "/graphs/CCS/" + runningSettings.SDGFileName);
+      try (PrintWriter out = new PrintWriter(runningSettings.outputPath + "/graphs/CCS/" + runningSettings.SDGFileName
         + "/" + runningSettings.SDGFileName + "_complete.ccs")) {
         out.println(ccsNEW);
       } catch (FileNotFoundException e) {
@@ -317,8 +320,8 @@ public class createSDG {
 
       for (Map.Entry<String, cPDG> entrycPDG : sdg.getcPDGAvailable().entrySet()) {
         String ccs = entrycPDG.getValue().generateCCS();
-        checkAndCreateFolder(outputPath + "/graphs/CCS/" + runningSettings.SDGFileName + "/CPDG");
-        try (PrintWriter out = new PrintWriter(outputPath + "/graphs/CCS/" + runningSettings.SDGFileName
+        checkAndCreateFolder(runningSettings.outputPath + "/graphs/CCS/" + runningSettings.SDGFileName + "/CPDG");
+        try (PrintWriter out = new PrintWriter(runningSettings.outputPath + "/graphs/CCS/" + runningSettings.SDGFileName
           + "/CPDG/M" + entrycPDG.getValue().getUniqueId() + ".ccs")) {
           out.println(ccs);
         } catch (FileNotFoundException e) {
@@ -376,6 +379,11 @@ public class createSDG {
         case "-SDGFileName":
           i++;
           runningSettings.SDGFileName=args[i];
+          break;
+        case "-projectPath":
+          i++;
+          runningSettings.rootPath=args[i];
+          runningSettings.outputPath=runningSettings.rootPath + "/results";
           break;
         case "-targetMethod":
           i++;
