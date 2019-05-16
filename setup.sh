@@ -38,11 +38,15 @@ if [ "$SCRIPTPATH" != "$PROJECTPATH_POM" ]; then
 	printf "Setting project path in pom.xml... "
 	sed -i "s@${PROJECTPATH_POM}@${SCRIPTPATH}@g" ${SCRIPTPATH}/pom.xml
 	echo "done!"
-elif [ "$SCRIPTPATH" != "$PROJECT_PATH" ]; then
+fi
+
+if [ "$SCRIPTPATH" != "$PROJECT_PATH" ]; then
 	printf "Setting project path in scriptBash.config... "
 	sed -i "s@${PROJECT_PATH}@${SCRIPTPATH}@g" ${SCRIPTPATH}/scriptBash.config
 	echo "done!"
 fi
+
+mvn compile
 
 if [ ! -f ${SCRIPTPATH}/lib/sootclasses-trunk-jar-with-dependencies.jar ]; then
 	echo "ERROR! File 'sootclasses-trunk-jar-with-dependencies.jar' not found in the /lib folder, exiting..."
