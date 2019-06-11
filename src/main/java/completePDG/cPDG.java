@@ -57,7 +57,7 @@ public class cPDG {
       this.pdg = new HashMutablePDG(this.unitGraph);
       createcPDG();
     } catch (RuntimeException e){
-      System.err.println("ERROR in generating PDG");
+      System.err.println("RUNTIME exception - ERROR in generating a PDG (Soot problem)");
     }
 
   }

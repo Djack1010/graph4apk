@@ -129,8 +129,12 @@ public class createSDG {
         System.out.println("STARTING MY TRANSFORMATION");
 
         int numTestClas = 0;
+        int progrBar = 1;
 
         for (SootClass cl : Scene.v().getApplicationClasses()) {
+
+          progressBar(progrBar,Scene.v().getApplicationClasses().size());
+          progrBar++;
 
           if (!CLASS_TO_TEST.equals("") && !cl.getName().replaceAll("\\$", "DDOLLARO").equals(CLASS_TO_TEST))
             continue;
@@ -443,6 +447,21 @@ public class createSDG {
       System.arraycopy( myArrayArgs, 0, tempArray, 0, tempArray.length );
       return tempArray;
     }else return myArrayArgs;
+  }
+
+  private static void progressBar(int partial, int total){
+    int relative_partial = (partial*33)/total;
+    System.out.println();
+    System.out.print("[");
+    for(int i=0; i<relative_partial;i++){
+      System.out.print("#");
+    }
+    for(int i=0; i<33-relative_partial;i++){
+      System.out.print("-");
+    }
+    System.out.println("] " + partial + "\\" + total);
+    if(partial != total)
+      System.out.print("\033[2A");
   }
 
 }
