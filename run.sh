@@ -130,6 +130,10 @@ if [ "${SINGLEAPK}" ]; then
     end=$(date +%s)
     runtime=$(($end-$start))
     echo "---> FINISHING $filename in $runtime sec"
+    echo "--- EXECUTION INFO ---" >> $SCRIPTPATH/results/stats/$filename.txt
+    echo "RUN: $RUN" >> $SCRIPTPATH/results/stats/$filename.txt
+    echo "SOOT: $DYNAMICRUN" >> $SCRIPTPATH/results/stats/$filename.txt
+    echo "TIME: $runtime sec" >> $SCRIPTPATH/results/stats/$filename.txt
 
 else
     for apkfile in $APK_FOLDER/*.apk; do
@@ -142,6 +146,10 @@ else
         end=$(date +%s)
         runtime=$(($end-$start))
         echo "---> FINISHING $filename in $runtime sec"
+        echo "--- EXECUTION INFO ---" >> $SCRIPTPATH/results/stats/$filename.txt
+        echo "RUN: $RUN" >> $SCRIPTPATH/results/stats/$filename.txt
+        echo "SOOT: $DYNAMICRUN" >> $SCRIPTPATH/results/stats/$filename.txt
+        echo "TIME: $runtime sec" >> $SCRIPTPATH/results/stats/$filename.txt
     done
     
 fi
