@@ -32,6 +32,7 @@ ANDRJAR="-android-jars ${PROJECT_PATH}/src/main/resources/android-platforms"
 function usage {
     echo "USAGE: run.sh OK [OPTION ARG]"
     echo "LIST OF AVAILABLE OPTIONS:"
+    echo "-Xss MEMORY [allocate MEMORY MB to Soot stack memory]"
     echo "-compile [clean and recompile the project]"
     echo "-winFormat [output files windows format in <project_folder>/results_windows/]"
     echo "-targMeth TARGET_METHOD_NAME [Look for methods with similar name]"
@@ -59,6 +60,10 @@ else
         elif [[ "${myArray[$n]}" == "-apk" ]]; then
             n=$(($n+1))
             SINGLEAPK="${myArray[$n]}"
+            n=$(($n+1))
+        elif [[ "${myArray[$n]}" == "-Xss" ]]; then
+            n=$(($n+1))
+            MEMORY="-Xss${myArray[$n]}m"
             n=$(($n+1))
         elif [[ "${myArray[$n]}" == "OK" ]]; then
             OK="OK"
@@ -110,7 +115,7 @@ if [ -n "${COMPILE}" ]; then
     mvn compile
 fi
 
-RUN="$JAVAPATH/bin/java $ENCODING $CPATH $CLASSTORUN $ARGS $SOOTCP $ANDRJAR -projectPath ${PROJECT_PATH}"
+RUN="$JAVAPATH/bin/java ${MEMORY} $ENCODING $CPATH $CLASSTORUN $ARGS $SOOTCP $ANDRJAR -projectPath ${PROJECT_PATH}"
 
 echo "STARTING SCRIPT run.sh"
 echo $RUN
