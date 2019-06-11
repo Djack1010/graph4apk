@@ -27,6 +27,11 @@ if [ -z "$(which mvn)" ]; then
         sudo apt-get install maven
 fi
 
+if [ -z "$(which dos2unix)" ]; then
+        echo "dos2unix not found, installing..."
+        sudo apt-get install dos2unix
+fi
+
 if [ -f ${SCRIPTPATH}/pom.xml ]; then 
 	PROJECTPATH_POM=$(cat ${SCRIPTPATH}/pom.xml | grep "<project.rootPath>" | cut -d">" -f2 | cut -d"<" -f1)
 else

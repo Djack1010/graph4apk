@@ -33,6 +33,7 @@ function usage {
     echo "USAGE: run.sh OK [OPTION ARG]"
     echo "LIST OF AVAILABLE OPTIONS:"
     echo "-compile [clean and recompile the project]"
+    echo "-winFormat [output files windows format in <project_folder>/results_windows/]"
     echo "-targMeth TARGET_METHOD_NAME [Look for methods with similar name]"
     echo "-targMethEXACT TARGET_METHOD_NAME [Look for methods with that exact name]"
     echo "-apk <absolute_path_to_apk OR relative_path_from_APK_FOLDER>"
@@ -70,6 +71,9 @@ else
             n=$(($n+1))
         elif [[ "${myArray[$n]}" == "-compile" ]]; then
             COMPILE="TRUE"
+            n=$(($n+1))
+        elif [[ "${myArray[$n]}" == "-winFormat" ]]; then
+            WINDOWS="TRUE"
             n=$(($n+1))
         elif [[ "${myArray[$n]}" == "-h" ]]; then
             usage
@@ -136,3 +140,34 @@ else
     done
     
 fi
+
+if [ -n "${WINDOWS}" ]; then
+    echo "CONVERTING OUTPUT FILES IN WINDOWS FORMAT"
+    filename=$(echo ${SINGLEAPK##*/} | cut -d'.' -f 1)
+    mkdir -p ${SCRIPTPATH}/results_windows
+    if [ -n "${GENJIMPLE}" ]; then
+        mkdir -p ${SCRIPTPATH}/results_windows/code/JimpleCode
+        if [ -d "${SCRIPTPATH}/results_windows/code/JimpleCode/$filename" ]; then
+            rm -rd "${SCRIPTPATH}/results_windows/code/JimpleCode/$filename"
+        fi
+        cp -r ${SCRIPTPATH}/results/code/JimpleCode/$filename ${SCRIPTPATH}/results_windows/code/JimpleCode
+        for jimple_file in ${SCRIPTPATH}/results_windows/code/JimpleCode/$filename/*.jimple; do
+            unix2dos -q $jimple_file
+        done
+    fi
+    if [ -n "${GENCCS}" ]; then
+        mkdir -p ${SCRIPTPATH}/results_windows/graphs/CCS
+        CCSPATH="${SCRIPTPATH}/results_windows/graphs/CCS/$filename"
+        if [ -d "$CCSPATH" ]; then
+            rm -rd "$CCSPATH"
+        fi
+        cp -r ${SCRIPTPATH}/results/graphs/CCS/$filename $CCSPATH
+        unix2dos -q ${CCSPATH}/$filename.ccs
+        unix2dos -q ${CCSPATH}/$filename.txt
+        for cpdg_file in ${CCSPATH}/CPDG/*.ccs; do
+            unix2dos -q $cpdg_file
+        done
+    fi
+fi
+
+echo "FINISHING SCRIPT run.sh"
