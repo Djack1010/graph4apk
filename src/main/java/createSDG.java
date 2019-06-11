@@ -451,8 +451,10 @@ public class createSDG {
 
   private static void progressBar(int partial, int total){
     int relative_partial = (partial*33)/total;
-    System.out.println();
-    System.out.print("[");
+    for(int i=0; i<70;i++){
+      System.out.print(" ");
+    }
+    System.out.print("\n[");
     for(int i=0; i<relative_partial;i++){
       System.out.print("#");
     }
