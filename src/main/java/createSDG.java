@@ -331,7 +331,7 @@ public class createSDG {
       String ccsNEW = sdg.generateCCS_NEW();
       checkAndCreateFolder(runningSettings.outputPath + "/graphs/CCS/" + runningSettings.SDGFileName);
       try (PrintWriter out = new PrintWriter(runningSettings.outputPath + "/graphs/CCS/" + runningSettings.SDGFileName
-        + "/" + runningSettings.SDGFileName + "_complete.ccs")) {
+        + "/" + runningSettings.SDGFileName + ".ccs")) { // _complete.ccs
         out.println(ccsNEW);
       } catch (FileNotFoundException e) {
         System.err.println(e);
@@ -352,7 +352,7 @@ public class createSDG {
         }
       }
       try (PrintWriter out = new PrintWriter(runningSettings.outputPath + "/graphs/CCS/" + runningSettings.SDGFileName
-        + "/" + runningSettings.SDGFileName + "_dictID-Name.txt")){
+        + "/" + runningSettings.SDGFileName + ".txt")){ // _dictID-Name.txt
         out.println(dictIDName);
       }catch (FileNotFoundException e) {
         System.err.println(e);
