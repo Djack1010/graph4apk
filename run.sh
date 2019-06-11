@@ -32,10 +32,12 @@ ANDRJAR="-android-jars ${PROJECT_PATH}/src/main/resources/android-platforms"
 function usage {
     echo "USAGE: run.sh OK [OPTION ARG]"
     echo "LIST OF AVAILABLE OPTIONS:"
+    echo "-compile [clean and recompile the project]"
     echo "-targMeth TARGET_METHOD_NAME [Look for methods with similar name]"
     echo "-targMethEXACT TARGET_METHOD_NAME [Look for methods with that exact name]"
     echo "-apk <absolute_path_to_apk OR relative_path_from_APK_FOLDER>"
     echo "-genCCS [generate CCS file in <project_folder>/results/graphs/CCS/]"
+    echo "-genJimple [generate Jimple code in <project_folder>/results/code/JimpleCode/]"
     exit
 }
 
@@ -62,6 +64,12 @@ else
             n=$(($n+1))
         elif [[ "${myArray[$n]}" == "-genCCS" ]]; then
             GENCCS="-genCCS"
+            n=$(($n+1))
+        elif [[ "${myArray[$n]}" == "-genJimple" ]]; then
+            GENJIMPLE="-genJimple"
+            n=$(($n+1))
+        elif [[ "${myArray[$n]}" == "-compile" ]]; then
+            COMPILE="TRUE"
             n=$(($n+1))
         elif [[ "${myArray[$n]}" == "-h" ]]; then
             usage
@@ -93,7 +101,10 @@ if [ "${SINGLEAPK}" ]; then
     fi
 fi
 
-mvn compile
+if [ -n "${COMPILE}" ]; then
+    mvn clean
+    mvn compile
+fi
 
 RUN="$JAVAPATH/bin/java $ENCODING $CPATH $CLASSTORUN $ARGS $SOOTCP $ANDRJAR -projectPath ${PROJECT_PATH}"
 
@@ -104,7 +115,9 @@ if [ "${SINGLEAPK}" ]; then
     filename=$(echo ${SINGLEAPK##*/} | cut -d'.' -f 1)
     start=$(date +%s)
     echo "-----  ANALYZING $SINGLEAPK  -----"
-    eval "$RUN -process-dir $SINGLEAPK -SDGFileName $filename ${TARGETMETHOD} ${GENCCS}"
+    DYNAMICRUN="-process-dir $SINGLEAPK -SDGFileName $filename ${TARGETMETHOD} ${GENCCS} ${GENJIMPLE}"
+    echo "RUNNING OPTION: ${DYNAMICRUN}"
+    eval "$RUN $DYNAMICRUN"
     end=$(date +%s)
     runtime=$(($end-$start))
     echo "---> FINISHING $filename in $runtime sec"
@@ -114,7 +127,9 @@ else
         filename=$(echo ${apkfile##*/} | cut -d'.' -f 1)
         start=$(date +%s)
         echo "-----  ANALYZING $apkfile  -----"
-        eval "$RUN -process-dir $apkfile -SDGFileName $filename ${TARGETMETHOD} ${GENCCS}"
+        DYNAMICRUN="-process-dir $apkfile -SDGFileName $filename ${TARGETMETHOD} ${GENCCS} ${GENJIMPLE}"
+        echo "RUNNING OPTION: ${DYNAMICRUN}"
+        eval "$RUN $DYNAMICRUN"
         end=$(date +%s)
         runtime=$(($end-$start))
         echo "---> FINISHING $filename in $runtime sec"

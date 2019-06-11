@@ -33,7 +33,21 @@ public class createSDG {
     public static String rootPath = "/home/giacomo/IdeaProjects/graph4apk";
     public static String outputPath = "/home/giacomo/IdeaProjects/graph4apk/results";
     public static boolean genCCS = false;
+    public static boolean genJimple = false;
     public settings() {}
+    public void printSettings(){
+      System.out.println("SETTINGS FOR ANALYSIS:");
+      if (this.targetMethod != null)
+        System.out.println("TARGET METHOD: " + this.targetMethod);
+      else if (this.targetMethodEXACT != null)
+        System.out.println("TARGET METHOD: " + this.targetMethodEXACT);
+      else
+        System.out.println("TARGET METHOD: NOT SPECIFIED!");
+      System.out.println("ROOT PATH: " + this.rootPath);
+      System.out.println("OUTPUT PATH: " + this.outputPath);
+      System.out.println("GENERATE CCS: " + this.genCCS);
+      System.out.println("GENERATE JIMPLE: " + this.genJimple);
+    }
   }
 
   private static int uniqueIndex=1;
@@ -105,6 +119,8 @@ public class createSDG {
     Scene.v().addBasicClass("java.io.PrintStream", SootClass.SIGNATURES);
     Scene.v().addBasicClass("java.lang.System", SootClass.SIGNATURES);
 
+    runningSettings.printSettings();
+
     PackManager.v().getPack("wjtp").add(new Transform("wjtp.myInstrumenter", new SceneTransformer() {
 
       @Override
@@ -167,25 +183,25 @@ public class createSDG {
 
             numTestMeth++;
 
-            //Print Jimple code of Body method on file
-
-            /**
-             StringWriter sw = new StringWriter();
-             PrintWriter pw = new PrintWriter(sw);
-             Printer.v().printTo(body, pw);
-             //String inputString = "public class Foo extends java.lang.Object {\n" + sw.toString() + "}";
-             try {
-             checkAndCreateFolder(outputPath + "/code/JimpleCode/" + SDGFileName);
-             //if (checkFileExist(outputPath + "/code/JimpleCode/" + fileName + ".jimple"))
-             //System.err.println("FILE " + fileName + ".jimple ALREADY EXIST!");
-             PrintWriter out = new PrintWriter(outputPath + "/code/JimpleCode/" + SDGFileName + "/M" + uniqueIndex + "_"
-             + fileNameForStoring + ".jimple", "UTF-8");
-             out.println(sw.toString());
-             out.close();
-             } catch (Exception e) {
-             e.printStackTrace();
-             }
-             **/
+            if (runningSettings.genJimple) {
+              //Print Jimple code of Body method on file
+              StringWriter sw = new StringWriter();
+              PrintWriter pw = new PrintWriter(sw);
+              Printer.v().printTo(body, pw);
+              //String inputString = "public class Foo extends java.lang.Object {\n" + sw.toString() + "}";
+              try {
+                checkAndCreateFolder(runningSettings.outputPath
+                  + "/code/JimpleCode/" + runningSettings.SDGFileName);
+                //if (checkFileExist(outputPath + "/code/JimpleCode/" + fileName + ".jimple"))
+                //System.err.println("FILE " + fileName + ".jimple ALREADY EXIST!");
+                PrintWriter out = new PrintWriter(runningSettings.outputPath + "/code/JimpleCode/" + runningSettings.SDGFileName
+                  + "/M" + uniqueIndex + ".jimple", "UTF-8");
+                out.println(sw.toString());
+                out.close();
+              } catch (Exception e) {
+                e.printStackTrace();
+              }
+            }
 
 
             //Represents a CFG where the nodes are Unit instances,
@@ -410,8 +426,10 @@ public class createSDG {
           runningSettings.targetMethodEXACT=args[i];
           break;
         case "-genCCS":
-          i++;
           runningSettings.genCCS=true;
+          break;
+        case "-genJimple":
+          runningSettings.genJimple=true;
           break;
         default:
           System.err.println("MainCPG:ERROR:Invalid arguments " + args[i] + ", exiting...");
