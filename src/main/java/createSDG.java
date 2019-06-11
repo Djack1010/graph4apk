@@ -322,7 +322,9 @@ public class createSDG {
         System.exit(1);
       }
 
+      String dictIDName = "";
       for (Map.Entry<String, cPDG> entrycPDG : sdg.getcPDGAvailable().entrySet()) {
+        dictIDName = dictIDName + entrycPDG.getValue().getUniqueId() + " : " + entrycPDG.getValue().getFullName() + "\n";
         String ccs = entrycPDG.getValue().generateCCS();
         checkAndCreateFolder(runningSettings.outputPath + "/graphs/CCS/" + runningSettings.SDGFileName + "/CPDG");
         try (PrintWriter out = new PrintWriter(runningSettings.outputPath + "/graphs/CCS/" + runningSettings.SDGFileName
@@ -332,6 +334,13 @@ public class createSDG {
           System.err.println(e);
           System.exit(1);
         }
+      }
+      try (PrintWriter out = new PrintWriter(runningSettings.outputPath + "/graphs/CCS/" + runningSettings.SDGFileName
+        + "/" + runningSettings.SDGFileName + "_dictID-Name.txt")){
+        out.println(dictIDName);
+      }catch (FileNotFoundException e) {
+        System.err.println(e);
+        System.exit(1);
       }
 
       System.out.println("CCS print on folder '" + runningSettings.outputPath + "/graphs/CCS/"
