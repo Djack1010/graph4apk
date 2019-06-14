@@ -38,9 +38,40 @@ function usage {
     echo "-targMeth TARGET_METHOD_NAME [Look for methods with similar name]"
     echo "-targMethEXACT TARGET_METHOD_NAME [Look for methods with that exact name]"
     echo "-apk <absolute_path_to_apk OR relative_path_from_APK_FOLDER>"
+    echo "-apkFolder <absolute_path_to_a_folder_of_apk>"
     echo "-genCCS [generate CCS file in <project_folder>/results/graphs/CCS/]"
     echo "-genJimple [generate Jimple code in <project_folder>/results/code/JimpleCode/]"
     exit
+}
+
+function convert_to_windows_format {
+    if [ -n "${WINDOWS}" ]; then
+        echo "CONVERTING OUTPUT FILES IN WINDOWS FORMAT"
+        mkdir -p ${SCRIPTPATH}/results_windows
+        if [ -n "${GENJIMPLE}" ]; then
+            mkdir -p ${SCRIPTPATH}/results_windows/code/JimpleCode
+            if [ -d "${SCRIPTPATH}/results_windows/code/JimpleCode/$filename" ]; then
+                rm -rd "${SCRIPTPATH}/results_windows/code/JimpleCode/$filename"
+            fi
+            cp -r ${SCRIPTPATH}/results/code/JimpleCode/$filename ${SCRIPTPATH}/results_windows/code/JimpleCode
+            for jimple_file in ${SCRIPTPATH}/results_windows/code/JimpleCode/$filename/*.jimple; do
+                unix2dos -q $jimple_file
+            done
+        fi
+        if [ -n "${GENCCS}" ]; then
+            mkdir -p ${SCRIPTPATH}/results_windows/graphs/CCS
+            CCSPATH="${SCRIPTPATH}/results_windows/graphs/CCS/$filename"
+            if [ -d "$CCSPATH" ]; then
+                rm -rd "$CCSPATH"
+            fi
+            cp -r ${SCRIPTPATH}/results/graphs/CCS/$filename $CCSPATH
+            unix2dos -q ${CCSPATH}/$filename.ccs
+            unix2dos -q ${CCSPATH}/$filename.txt
+            for cpdg_file in ${CCSPATH}/CPDG/*.ccs; do
+                unix2dos -q $cpdg_file
+            done
+        fi
+    fi
 }
 
 if [ "$#" -eq 0 ]; then
@@ -60,6 +91,10 @@ else
         elif [[ "${myArray[$n]}" == "-apk" ]]; then
             n=$(($n+1))
             SINGLEAPK="${myArray[$n]}"
+            n=$(($n+1))
+        elif [[ "${myArray[$n]}" == "-apkFolder" ]]; then
+            n=$(($n+1))
+            APK_FOLDER="${myArray[$n]}"
             n=$(($n+1))
         elif [[ "${myArray[$n]}" == "-Xss" ]]; then
             n=$(($n+1))
@@ -134,7 +169,7 @@ if [ "${SINGLEAPK}" ]; then
     echo "RUN: $RUN" >> $SCRIPTPATH/results/stats/$filename.txt
     echo "SOOT: $DYNAMICRUN" >> $SCRIPTPATH/results/stats/$filename.txt
     echo "TIME: $runtime sec" >> $SCRIPTPATH/results/stats/$filename.txt
-
+    convert_to_windows_format
 else
     for apkfile in $APK_FOLDER/*.apk; do
         filename=$(echo ${apkfile##*/} | cut -d'.' -f 1)
@@ -150,37 +185,8 @@ else
         echo "RUN: $RUN" >> $SCRIPTPATH/results/stats/$filename.txt
         echo "SOOT: $DYNAMICRUN" >> $SCRIPTPATH/results/stats/$filename.txt
         echo "TIME: $runtime sec" >> $SCRIPTPATH/results/stats/$filename.txt
+        convert_to_windows_format
     done
-    
-fi
-
-if [ -n "${WINDOWS}" ]; then
-    echo "CONVERTING OUTPUT FILES IN WINDOWS FORMAT"
-    filename=$(echo ${SINGLEAPK##*/} | cut -d'.' -f 1)
-    mkdir -p ${SCRIPTPATH}/results_windows
-    if [ -n "${GENJIMPLE}" ]; then
-        mkdir -p ${SCRIPTPATH}/results_windows/code/JimpleCode
-        if [ -d "${SCRIPTPATH}/results_windows/code/JimpleCode/$filename" ]; then
-            rm -rd "${SCRIPTPATH}/results_windows/code/JimpleCode/$filename"
-        fi
-        cp -r ${SCRIPTPATH}/results/code/JimpleCode/$filename ${SCRIPTPATH}/results_windows/code/JimpleCode
-        for jimple_file in ${SCRIPTPATH}/results_windows/code/JimpleCode/$filename/*.jimple; do
-            unix2dos -q $jimple_file
-        done
-    fi
-    if [ -n "${GENCCS}" ]; then
-        mkdir -p ${SCRIPTPATH}/results_windows/graphs/CCS
-        CCSPATH="${SCRIPTPATH}/results_windows/graphs/CCS/$filename"
-        if [ -d "$CCSPATH" ]; then
-            rm -rd "$CCSPATH"
-        fi
-        cp -r ${SCRIPTPATH}/results/graphs/CCS/$filename $CCSPATH
-        unix2dos -q ${CCSPATH}/$filename.ccs
-        unix2dos -q ${CCSPATH}/$filename.txt
-        for cpdg_file in ${CCSPATH}/CPDG/*.ccs; do
-            unix2dos -q $cpdg_file
-        done
-    fi
 fi
 
 echo "FINISHING SCRIPT run.sh"
