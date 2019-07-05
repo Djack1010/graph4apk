@@ -362,7 +362,6 @@ public class SDG {
     if (targetMethod == null)
       return 0;
     if (this.cPDGAvailable.containsKey(targetMethod)) {
-      System.err.println(targetMethod);
       cleanVisit();
       return getLinkedMethods(this.cPDGAvailable.get(targetMethod), 1, new StringBuilder());
     } else {
@@ -436,6 +435,51 @@ public class SDG {
     return toReturn;
   }
 
+  public subGraph getSubGraph(cPDG target1, cPDG target2) {
+    this.cleanVisit();
+    subGraph subgraph = new subGraph(target1);
+    RECgetSubGraph(target1, target2, subgraph);
+    if (subgraph.getTarget() == null){
+      this.cleanVisit();
+      subGraph subgraph2 = new subGraph(target2);
+      RECgetSubGraph(target2, target1, subgraph2);
+      return subgraph2;
+    } else
+      return subgraph;
+  }
+
+  private void RECgetSubGraph(cPDG target1, cPDG target2, subGraph subgraph){
+    Set<SDGEdge> tempSDGEdgeSet = this.sdg.get(target1);
+    if (subgraph.target == null)
+      subgraph.addPathID(target1.getUniqueId());
+    Set<cPDG> toLoop = new HashSet<>();
+    if ( tempSDGEdgeSet != null) {
+      for (SDGEdge edge : tempSDGEdgeSet) {
+        if (!edge.isVisited()) {
+          edge.setVisited(true);
+          subgraph.addSDGEdge(edge);
+          subgraph.addcPDGNode(edge.getSource());
+          if (edge.getDest() != null) {
+            toLoop.add(edge.getDest());
+            if (edge.getDest().equals(target2)){
+              subgraph.setTarget(edge.getDest());
+              subgraph.addPathID(edge.getDest().getUniqueId());
+            }
+          }
+        }
+      }
+      if (toLoop.isEmpty())
+        return;
+      else{
+        for(cPDG c: toLoop){
+          RECgetSubGraph(c, target2, subgraph);
+        }
+      }
+    }
+    if (subgraph.target == null)
+      subgraph.removePathID();
+  }
+
   private void cleanVisit(){
     for (Map.Entry<cPDG, Set<SDGEdge>> entrySDG : this.sdg.entrySet()) {
       if ( entrySDG.getValue() != null ){
@@ -443,6 +487,120 @@ public class SDG {
           edge.setVisited(false);
         }
       }
+    }
+  }
+
+  public class subGraph{
+    cPDG startNode;
+    cPDG target;
+    List<Integer> path;
+    Set<SDGEdge> subGraphEdge;
+    Set<cPDG> subGraphNode;
+
+    public subGraph(cPDG rootNode){
+      this.startNode = rootNode;
+      this.target = null;
+      this.subGraphEdge = new HashSet<SDGEdge>();
+      this.subGraphNode = new HashSet<cPDG>();
+      this.path = new ArrayList<>();
+    }
+
+    public void addSDGEdge(SDGEdge edge) { this.subGraphEdge.add(edge); }
+    public void addcPDGNode(cPDG node) { this.subGraphNode.add(node); }
+
+    public void setTarget(cPDG cpdg) { this.target = cpdg; }
+
+    public cPDG getStartNode() {
+      return startNode;
+    }
+
+    public cPDG getTarget() {
+      return target;
+    }
+
+    public Set<SDGEdge> getSubGraphEdge() {
+      return subGraphEdge;
+    }
+    public Set<cPDG> getSubGraphNode() {
+      return subGraphNode;
+    }
+
+    public void addPathID(int i) { this.path.add(i); }
+    public void removePathID() { this.path.remove(this.path.size()-1); }
+
+    public String genCCS(){
+      String startingProc = "proc M0=";
+      boolean init = true;
+      String toReturn = "";
+      for (cPDG node : this.subGraphNode) {
+
+        if (init)
+          startingProc = startingProc + "M" + node.getUniqueId();
+        else
+          startingProc = startingProc + "+M" + node.getUniqueId();
+
+        toReturn = toReturn + "proc M" + node.getUniqueId() + "=";
+        init = true;
+        Set<SDGEdge> tempSDGEdgeSet = new HashSet<SDGEdge>();
+        tempSDGEdgeSet = sdg.get(node);
+        for (SDGEdge edge : tempSDGEdgeSet) {
+          if (init)
+            init = false;
+          else
+            toReturn = toReturn + "+";
+
+          if (edge.getDest() == null && edge.isLib())
+            toReturn = toReturn + this.cleanInvokeStmt(edge.getInvokeStmt(), 1) + ".L"
+              + this.cleanInvokeStmt(edge.getInvokeStmt(), 0) + ".nil";
+          else if (edge.getDest() == null && !edge.isLib()) {
+            toReturn = toReturn + this.cleanInvokeStmt(edge.getInvokeStmt(), 1) + ".N"
+              + this.cleanInvokeStmt(edge.getInvokeStmt(), 0) + ".nil";
+          } else if (edge.getDest() != null) {
+            toReturn = toReturn + this.cleanInvokeStmt(edge.getInvokeStmt(), 1) + ".M" + edge.getDest().getUniqueId();
+          }
+
+        }
+
+        toReturn = toReturn + "\n\n";
+      }
+
+
+      startingProc = startingProc + "\n\n";
+      return startingProc + toReturn;
+    }
+
+    public void printInfo(){
+      System.out.println("STARTER: " + this.startNode.getFullName());
+      if (this.target != null) {
+        System.out.println("TARGET: " + this.target.getFullName());
+        System.out.print("PATH:");
+        for(Integer n : this.path){
+          System.out.print(" " + n + " ->");
+        }
+        System.out.println();
+      } else {
+        System.out.println("TARGET: NOT FOUND!");
+        return;
+      }
+      for(SDGEdge e : this.subGraphEdge){
+        if(e.getDest() != null)
+          System.out.println("EDGE from '" + e.getSource().getUniqueId() + "' to '" + e.getDest().getUniqueId() + "'");
+        else if (e.isLib())
+          System.out.println("EDGE from '" + e.getSource().getUniqueId() + "' to LIB");
+        else
+          System.out.println("EDGE from '" + e.getSource().getUniqueId() + "' to NOT FOUND");
+        System.out.println("\tCalling " + e.getInvokeStmt().split("\\(")[0]
+          + " and passing (" + e.getInvokeStmt().split("\\(")[1]);
+      }
+    }
+
+    private String cleanInvokeStmt(String stmt, int n){
+      String base = stmt.split("\\(")[n].replaceAll("\\)", "").replaceAll("\\.", "")
+        .replaceAll("<", "").replaceAll(">", "").replaceAll(",", ".");
+      if(base.isEmpty())
+        return "-";
+      else
+        return base;
     }
   }
 

@@ -30,6 +30,7 @@ public class createSDG {
     public static String SDGFileName = null;
     public static String targetMethod = null;
     public static String targetMethodEXACT = null;
+    public static String subGraphsCCSMethods = null;
     public static String rootPath = "/home/giacomo/IdeaProjects/graph4apk";
     public static String outputPath = "/home/giacomo/IdeaProjects/graph4apk/results";
     public static boolean genCCS = false;
@@ -366,6 +367,40 @@ public class createSDG {
       System.out.println("CCS print on folder '" + runningSettings.outputPath + "/graphs/CCS/"
         + runningSettings.SDGFileName + "/");
 
+      if (runningSettings.subGraphsCCSMethods != null) {
+          String firstID = runningSettings.subGraphsCCSMethods.split("-")[0];
+          String secondID = runningSettings.subGraphsCCSMethods.split("-")[1];
+          String firstName = "";
+          String secondName = "";
+        for (Map.Entry<String, cPDG> entrycPDG : sdg.getcPDGAvailable().entrySet()) {
+          if (entrycPDG.getValue().getUniqueId() == Integer.valueOf(firstID)){
+            firstName = entrycPDG.getKey();
+          } else if (entrycPDG.getValue().getUniqueId() == Integer.valueOf(secondID)){
+            secondName = entrycPDG.getKey();
+          }
+        }
+        if ( firstName.equals("") || secondName.equals("")){
+          System.err.println("ERROR! Methods not found, exiting...");
+          System.exit(0);
+        }
+
+        SDG.subGraph subgraph = sdg.getSubGraph(sdg.getcPDGAvailable().get(firstName),
+          sdg.getcPDGAvailable().get(secondName));
+        if ( subgraph.getTarget() != null){
+          try (PrintWriter out = new PrintWriter(runningSettings.outputPath + "/graphs/CCS/" + runningSettings.SDGFileName
+            + "/subGraphM" + firstID + "-" + secondID + ".ccs")){
+            out.println(subgraph.genCCS());
+          }catch (FileNotFoundException e) {
+            System.err.println(e);
+            System.exit(1);
+          }
+          System.out.println("CCS of SubgraphM" + firstID + "-" + secondID + " print on folder '" + runningSettings.outputPath + "/graphs/CCS/"
+            + runningSettings.SDGFileName + "/");
+        } else {
+          System.out.println("WARNING! Methods " + firstID + "-" + secondID + " are not linked, CCS not generated...");
+        }
+      }
+
     }
 
   }
@@ -429,6 +464,10 @@ public class createSDG {
           i++;
           runningSettings.targetMethodEXACT=args[i];
           break;
+        case "-subGraphMethods":
+          i++;
+          runningSettings.subGraphsCCSMethods=args[i];
+          break;
         case "-genCCS":
           runningSettings.genCCS=true;
           break;
@@ -442,6 +481,16 @@ public class createSDG {
       }
       i++;
     }
+
+    //CHECK if parameters are correct inputs
+    if (runningSettings.subGraphsCCSMethods != null && !runningSettings.genCCS){
+      System.err.println("ERROR! -subGraphMethods parameters needs also -genCCS! Exiting...");
+      System.exit(0);
+    } else if (runningSettings.subGraphsCCSMethods != null && !runningSettings.subGraphsCCSMethods.matches("[\\d]{1,5}-[\\d]{1,5}")) {
+      System.out.println("ERROR, invalid parameter '" + runningSettings.subGraphsCCSMethods + "', exiting...");
+      System.exit(0);
+    }
+
     if(j!=myArrayArgs.length){
       String[] tempArray = new String[j];
       System.arraycopy( myArrayArgs, 0, tempArray, 0, tempArray.length );
