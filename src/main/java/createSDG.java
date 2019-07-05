@@ -272,28 +272,30 @@ public class createSDG {
 
     if (runningSettings.targetMethod != null || runningSettings.targetMethodEXACT != null) {
       System.out.println("-------- LOOKING FOR LINKED METHODS TO TARGET --------");
+      String target = runningSettings.targetMethodEXACT != null
+        ? runningSettings.targetMethodEXACT
+        : runningSettings.targetMethod;
+      StringBuilder toPrint = new StringBuilder("TARGET: " + target + "\n");
 
-      if (runningSettings.targetMethodEXACT != null) {
-        System.out.println("TARGET: " + runningSettings.targetMethodEXACT);
-        sdg.getConnectedMethod(runningSettings.targetMethodEXACT);
+      if (runningSettings.targetMethodEXACT != null)
+        sdg.getConnectedMethod(target, toPrint);
+      else
+        sdg.getConnectedMethod_PARSER(target, toPrint);
 
-      } else {
-        StringBuilder toPrint = new StringBuilder("TARGET: " + runningSettings.targetMethod + "\n");
-        sdg.getConnectedMethod_PARSER(runningSettings.targetMethod, toPrint);
-        System.out.println(toPrint);
-        checkAndCreateFolder(runningSettings.outputPath + "/linkedMethod");
-        try (PrintWriter out = new PrintWriter(runningSettings.outputPath + "/linkedMethod/"
-          + runningSettings.targetMethod + ".txt")) {
-          out.println(toPrint);
-          System.out.println("Result print on file '" + runningSettings.outputPath + "/linkedMethod/"
-            + runningSettings.targetMethod + ".txt'");
-        } catch (FileNotFoundException e) {
-          System.err.println(e);
-          System.exit(1);
-        }
+      System.out.println(toPrint);
+      checkAndCreateFolder(runningSettings.outputPath + "/linkedMethod");
+      try (PrintWriter out = new PrintWriter(runningSettings.outputPath + "/linkedMethod/"
+        + target.replaceAll("\\.", "") + ".txt")) {
+        out.println(toPrint);
+        System.out.println("Result print on file '" + runningSettings.outputPath + "/linkedMethod/"
+          + target.replaceAll("\\.", "") + ".txt'");
+      } catch (FileNotFoundException e) {
+        System.err.println(e);
+        System.exit(1);
       }
 
     }
+
     //sdg.completeAnalysis();
 
     //DotGraph SDGdotGraph = sdg.drawcSDG();
@@ -345,7 +347,7 @@ public class createSDG {
 
       String dictIDName = "";
       for (Map.Entry<String, cPDG> entrycPDG : sdg.getcPDGAvailable().entrySet()) {
-        dictIDName = dictIDName + entrycPDG.getValue().getUniqueId() + " : " + entrycPDG.getValue().getFullName() + "\n";
+        dictIDName = dictIDName + entrycPDG.getValue().getUniqueId() + " : " + entrycPDG.getKey() + "\n";
         String ccs = entrycPDG.getValue().generateCCS();
         checkAndCreateFolder(runningSettings.outputPath + "/graphs/CCS/" + runningSettings.SDGFileName + "/CPDG");
         try (PrintWriter out = new PrintWriter(runningSettings.outputPath + "/graphs/CCS/" + runningSettings.SDGFileName

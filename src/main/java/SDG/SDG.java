@@ -349,7 +349,7 @@ public class SDG {
     int base = 0;
     String name = "";
     for (Map.Entry<String, cPDG> entrycPDG : this.cPDGAvailable.entrySet()) {
-      int temp = getConnectedMethod(entrycPDG.getKey());
+      int temp = getConnectedMethod(entrycPDG.getKey(), new StringBuilder());
       if (temp > base){
         name = entrycPDG.getKey();
         base = temp;
@@ -358,12 +358,12 @@ public class SDG {
     System.out.println("The winner is '" + name + "' with " + String.valueOf(base) + " levels");
   }
 
-  public int getConnectedMethod(String targetMethod){
+  public int getConnectedMethod(String targetMethod, StringBuilder toPrint){
     if (targetMethod == null)
       return 0;
     if (this.cPDGAvailable.containsKey(targetMethod)) {
       cleanVisit();
-      return getLinkedMethods(this.cPDGAvailable.get(targetMethod), 1, new StringBuilder());
+      return getLinkedMethods(this.cPDGAvailable.get(targetMethod), 1, toPrint);
     } else {
       System.err.println(targetMethod + " NOT FOUND!");
       return 0;
@@ -413,21 +413,24 @@ public class SDG {
         for(int i=0;i<level-1;i++){
           lvl=lvl+"_";
         }
-        if (edge.isVisited()) {
-          toPrint.append(lvl + " RECURSION -> " + edge.getInvokeStmt() + "\n");
-          continue;
-        }
-        else
-          edge.setVisited(true);
+        toPrint.append(lvl);
 
-        if (edge.getDest() != null){
-          toPrint.append(lvl + " " + edge.getInvokeStmt() + "\n");
-          toReturn = getLinkedMethods(edge.getDest(), level+1, toPrint);
-        }
+        if (edge.isVisited())
+          toPrint.append(" RECURSION -> ");
+
+        if (edge.getDest() != null)
+          toPrint.append(" M" + edge.getDest().getUniqueId() + ": ");
         else if (edge.isLib())
-          toPrint.append(lvl + " LIBRARY -> " + edge.getInvokeStmt() + "\n");
+          toPrint.append(" LIBRARY: ");
         else
-          toPrint.append(lvl + " NOT_FOUND -> " + edge.getInvokeStmt() + "\n");
+          toPrint.append(" NOT_FOUND: ");
+        toPrint.append(edge.getInvokeStmt() + "\n");
+
+        if (!edge.isVisited()) {
+          edge.setVisited(true);
+          if(edge.getDest() != null)
+            toReturn = getLinkedMethods(edge.getDest(), level+1, toPrint);
+        }
 
       }
     } else
