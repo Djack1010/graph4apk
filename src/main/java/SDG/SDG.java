@@ -601,7 +601,7 @@ public class SDG {
       String base = stmt.split("\\(")[n].replaceAll("\\)", "").replaceAll("\\.", "")
         .replaceAll("<", "").replaceAll(">", "").replaceAll(",", ".");
       if(base.isEmpty())
-        return "no_args";
+        return "noArgs";
       else
         return base;
     }
