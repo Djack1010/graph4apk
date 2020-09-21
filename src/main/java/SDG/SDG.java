@@ -363,7 +363,7 @@ public class SDG {
       return 0;
     if (this.cPDGAvailable.containsKey(targetMethod)) {
       cleanVisit();
-      return getLinkedMethods(this.cPDGAvailable.get(targetMethod), 1, toPrint);
+      return getLinkedMethods(this.cPDGAvailable.get(targetMethod), 0, toPrint);
     } else {
       System.err.println(targetMethod + " NOT FOUND!");
       return 0;
@@ -398,7 +398,7 @@ public class SDG {
     } else {
       for( String toLoop : matched) {
         toPrint.append(toLoop + "\n");
-        getLinkedMethods(this.cPDGAvailable.get(toLoop), 1, toPrint);
+        getLinkedMethods(this.cPDGAvailable.get(toLoop), 0, toPrint);
       }
       return 1;
     }
@@ -409,6 +409,10 @@ public class SDG {
     int toReturn = level;
     if ( tempSDGEdgeSet != null) {
       for (SDGEdge edge : tempSDGEdgeSet) {
+        if (level == 0) {
+          toPrint.append("0  |_ M" + edge.getSource().getUniqueId() + ": THE TARGET\n");
+          level++;
+        }
         String lvl = level + "  |_";
         for(int i=0;i<level-1;i++){
           lvl=lvl+"_";
