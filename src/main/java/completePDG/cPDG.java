@@ -20,7 +20,8 @@ public class cPDG {
 
   private int uniqueId;
   private int nodeIdIncrement;
-  private boolean built = false;
+  private boolean builtComplete = false;
+  private boolean builtPartial = false;
   private String cPDGFullName;
   private String cPDGClassName;
   private String cPDGMethodName;
@@ -30,9 +31,37 @@ public class cPDG {
   private Set<Unit> visitedStmt;
   private Map<String, Unit> invokeStmt;
   private Map<Integer, cPDGNode> cPDGNodes;
+  private StmtMapFrequency frequencyStmt;
 
 
   public cPDG(UnitGraph cfg, String fname, String cname, String mname, int unId) {
+
+    initializeClass(cfg, fname, cname, mname, unId);
+
+    try {
+      this.pdg = new HashMutablePDG(this.unitGraph);
+      createcPDG(false);
+    } catch (RuntimeException e){
+      System.err.println("RUNTIME exception - ERROR in generating a PDG (Soot problem)");
+    }
+
+  }
+
+  public cPDG(UnitGraph cfg, String fname, String cname, String mname, int unId, boolean partial) {
+
+    initializeClass(cfg, fname, cname, mname, unId);
+
+    try {
+      this.pdg = new HashMutablePDG(this.unitGraph);
+      createcPDG(partial);
+    } catch (RuntimeException e){
+      System.err.println("RUNTIME exception - ERROR in generating a PDG (Soot problem)");
+    }
+
+  }
+
+
+  private void initializeClass(UnitGraph cfg, String fname, String cname, String mname, int unId){
 
     this.unitGraph = cfg;
     this.cPDGFullName = fname;
@@ -43,6 +72,7 @@ public class cPDG {
     this.cPDGNodes = new TreeMap<>();
     this.visitedStmt = new HashSet<>();
     this.invokeStmt = new HashMap<>();
+    this.frequencyStmt = new StmtMapFrequency();
 
     //create Entry and Exit Node
     this.cPDGNodes.put(0, new cPDGNode(0, "ENTRY_NODE", "EXTRA", null));
@@ -53,25 +83,56 @@ public class cPDG {
       System.err.println("ERROR: cfg has no entry point");
     }
 
-    try {
-      this.pdg = new HashMutablePDG(this.unitGraph);
-      createcPDG();
-    } catch (RuntimeException e){
-      System.err.println("RUNTIME exception - ERROR in generating a PDG (Soot problem)");
+  }
+
+
+  private class StmtMapFrequency {
+    ArrayList<String> JimpleStmt;
+    ArrayList<Integer> StmtFrequency;
+
+    public StmtMapFrequency(){
+      this.JimpleStmt = new ArrayList<String>(Arrays.asList("JAssignStmt", "JBreakpointStmt", "JEnterMonitorStmt",
+              "JExitMonitorStmt", "JGotoStmt", "JIdentityStmt", "JIfStmt", "JInvokeStmt", "JLookupSwitchStmt",
+              "JNopStmt", "JRetStmt", "JReturnStmt", "JReturnVoidStmt", "JTableSwitchStmt", "JThrowStmt")
+      );
+
+      this.StmtFrequency = new ArrayList<Integer>();
+      for(String ignored : JimpleStmt){
+        this.StmtFrequency.add(0);
+      }
+    }
+
+    public ArrayList<String> getJimpleStmt() { return this.JimpleStmt; }
+    public ArrayList<Integer> getStmtFrequency() { return this.StmtFrequency; }
+
+    public void incrFrequency(String jimpleStmt){
+      Integer index = this.JimpleStmt.indexOf(jimpleStmt);
+      if (index < 0){
+        System.err.println(jimpleStmt + "does not exist in JimpleStmt list...");
+        System.exit(1);
+      } else
+        this.StmtFrequency.set(index, this.StmtFrequency.get(index) + 1);
     }
 
   }
 
-  private void createcPDG() {
+  private void createcPDG(boolean partial) {
     for (int i = 0; i < this.unitGraph.getHeads().size(); i++) {
       createCFG(this.unitGraph.getHeads().get(i), this.cPDGNodes.get(0));
     }
+    this.builtPartial = true;
+    if (partial)
+      return;
     createPDGDataEdges();
     createPDGControlEdges();
-    this.built = true;
+    this.builtComplete = true;
   }
 
-  public boolean isBuilt() { return this.built; }
+  public boolean isBuilt() { return this.builtComplete; }
+
+  // If isIndexable() True, the cPDG may not be complete but has an uniqueID and a StmtFrequency object, thus it can be
+  //  a node in a Call Graph, where the statements and edges are not required (built only if isBuilt() True)
+  public boolean isIndexable() { return this.builtPartial; }
 
   public cPDGNode getRootNode() {
     return this.rootNode;
@@ -97,6 +158,10 @@ public class cPDG {
 
   public UnitGraph getUnitGraph() {
     return this.unitGraph;
+  }
+
+  public ArrayList<Integer> getStmtFrequency() {
+    return this.frequencyStmt.getStmtFrequency();
   }
 
   public String generateCCS() {
@@ -165,6 +230,8 @@ public class cPDG {
       this.visitedStmt.add(unitNode);
     if (!(unitNode instanceof Stmt))
       System.err.println("NODE '" + unitNode + "' is not a statement!");
+    else
+      this.frequencyStmt.incrFrequency(unitNode.getClass().getSimpleName());
     cPDGNode newNode = new cPDGNode(this.getNodeIdIncrement(), unitNode.toString(), this.mapStmtType(unitNode), unitNode);
     this.cPDGNodes.put(newNode.getId(), newNode);
     newNode.newEdgeIn(precNode, cPDGEdge.EdgeTypes.CONTROL_FLOW);
