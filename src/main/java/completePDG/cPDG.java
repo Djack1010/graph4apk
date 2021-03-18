@@ -55,7 +55,7 @@ public class cPDG {
       this.pdg = new HashMutablePDG(this.unitGraph);
       createcPDG(partial);
     } catch (RuntimeException e){
-      System.err.println("RUNTIME exception - ERROR in generating a PDG (Soot problem)");
+      System.err.println("RUNTIME exception - ERROR in generating a CFG (Soot problem)");
     }
 
   }
@@ -117,15 +117,21 @@ public class cPDG {
   }
 
   private void createcPDG(boolean partial) {
-    for (int i = 0; i < this.unitGraph.getHeads().size(); i++) {
-      createCFG(this.unitGraph.getHeads().get(i), this.cPDGNodes.get(0));
+    if (partial) {
+      //createCFGPartialnotREC();
+      for (int i = 0; i < this.unitGraph.getHeads().size(); i++) {
+        createCFGPartial(this.unitGraph.getHeads().get(i));
+      }
+      this.builtPartial = true;
+    } else {
+      for (int i = 0; i < this.unitGraph.getHeads().size(); i++) {
+        createCFG(this.unitGraph.getHeads().get(i), this.cPDGNodes.get(0));
+      }
+      this.builtPartial = true;
+      createPDGDataEdges();
+      createPDGControlEdges();
+      this.builtComplete = true;
     }
-    this.builtPartial = true;
-    if (partial)
-      return;
-    createPDGDataEdges();
-    createPDGControlEdges();
-    this.builtComplete = true;
   }
 
   public boolean isBuilt() { return this.builtComplete; }
@@ -241,6 +247,36 @@ public class cPDG {
       for (Unit succNode : this.unitGraph.getSuccsOf(unitNode)) {
         createCFG(succNode, newNode);
       }
+    }
+  }
+
+  // Only a visit to a CFG to save the InvokeStmt
+  private void createCFGPartial(Unit unitNode) {
+    if (this.visitedStmt.contains(unitNode)) {//get into a code loop -> node already visited, only link with precnode
+      return;
+    } else
+      this.visitedStmt.add(unitNode);
+    if (!(unitNode instanceof Stmt))
+      System.err.println("NODE '" + unitNode + "' is not a statement!");
+    else
+      this.frequencyStmt.incrFrequency(unitNode.getClass().getSimpleName());
+    this.mapStmtType(unitNode); // Return Stmt of unitNode and add it to InvokeStmt if so
+
+    for (Unit succNode : this.unitGraph.getSuccsOf(unitNode)) {
+      createCFGPartial(succNode);
+    }
+  }
+
+  // Only a visit to a CFG to save the InvokeStmt - not recursive version!
+  private void createCFGPartialnotREC() {
+    Iterator<Unit> it = this.unitGraph.iterator();
+    while(it.hasNext()){
+      Unit unitNode = it.next();
+      if (!(unitNode instanceof Stmt))
+        System.err.println("NODE '" + unitNode + "' is not a statement!");
+      else
+        this.frequencyStmt.incrFrequency(unitNode.getClass().getSimpleName());
+      this.mapStmtType(unitNode); // Return Stmt of unitNode and add it to InvokeStmt if so
     }
   }
 

@@ -7,12 +7,6 @@ import soot.toolkits.graph.BriefUnitGraph;
 import soot.toolkits.graph.ExceptionalUnitGraph;
 import soot.toolkits.graph.TrapUnitGraph;
 import soot.toolkits.graph.UnitGraph;
-import soot.toolkits.graph.pdg.HashMutablePDG;
-import soot.toolkits.graph.pdg.ProgramDependenceGraph;
-import soot.util.cfgcmd.CFGToDotGraph;
-import soot.util.dot.DotGraph;
-import utility.PDGToDotGraph;
-import utility.cPDGToDotGraph;
 
 import java.io.*;
 import java.util.*;
@@ -82,9 +76,10 @@ public class createCG {
           ":" + runningSettings.rootPath + "/src/main/resources/android-platforms/android-17/android-17-api.jar",
         "-android-jars",
         "" + runningSettings.rootPath + "/src/main/resources/android-platforms",
+        //"-process-dir",
+        //"" + runningSettings.rootPath + "/apk_db/OK/0ad370eab2ac647a932ad18fbb55d098.apk",
         "-process-dir",
-        //"/home/giacomo/Documents/merc_proj/apk_db/toTest/2EED7318CA564A909E75AD616CAD5CDF.apk"
-        "" + runningSettings.rootPath + "/apk_db/0ee4223f26481d32900cf362a9a8bec0.apk"
+        "" + runningSettings.rootPath + "/apk_db_AMD/Airpush/0a1fc800465e64f9deaa063b81688509.apk"
       };
     } else
       sootArgs = handleArgs(args);
@@ -202,7 +197,7 @@ public class createCG {
             //UnitGraph cfg = new TrapUnitGraph(body);
 
             //System.out.print("\t\t\tGENERATING cPDG...");
-            cPDG cPDG = new cPDG(cfg, fileName, cl.getName(), m.getName(), uniqueIndex, false);
+            cPDG cPDG = new cPDG(cfg, fileName, cl.getName(), m.getName(), uniqueIndex, true);
             uniqueIndex++;
 
             if (cPDG.isIndexable())
