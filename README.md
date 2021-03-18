@@ -52,6 +52,11 @@ The project can be run using the script 'run.sh' in the project folder.
 ./run.sh OK -apk 00ceaa5f8f9be7a9ce5ffe96b5b6fb2e7e73ad87c2f023db9fa399c40ac59b62.apk -targMeth COREEFILETESTCLASSCOMAPPERHANDCOMMONDTOCOMMANDDDOLLAROCOMMANDSstaticvoidclinit0
 ```
 
-## Authors
+## Authors & References
 
-* **Giacomo Iadarola** - *main contributor* - [Djack1010](https://github.com/Djack1010)
+* **Giacomo Iadarola** - *main contributor* - [Djack1010](https://github.com/Djack1010) giacomo.iadarola(at)iit.cnr.it
+
+If you are using this repository, please cite our work by refering to our publications (bibtex format):
+```
+WORK IN PROGRESS...
+```
