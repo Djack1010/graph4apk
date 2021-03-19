@@ -5,6 +5,8 @@ import soot.Unit;
 import soot.util.dot.DotGraph;
 import soot.util.dot.DotGraphNode;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.*;
 
 import static utility.Utility.clean4CCS;
@@ -48,15 +50,35 @@ public class CG {
   public Map<String, cPDG> getcPDGAvailable() { return this.cPDGAvailable; }
 
   public class CGData{
-    public String nodeXfeatures = "";
-    public String edges = "";
+    public ArrayList<String> nodeXfeatures = new ArrayList<>();
+    public ArrayList<String> edges = new ArrayList<>();
 
     public void addNode(String node_features){
-      this.nodeXfeatures += node_features + "\n";
+      this.nodeXfeatures.add(node_features);
     }
 
     public void addEdge(String edge){
-      this.edges += edge + "\n";
+      this.edges.add(edge);
+    }
+
+    public void printNodeOnFile(String path){
+      try (PrintWriter out = new PrintWriter(path)) {
+        for(String s: this.nodeXfeatures){
+          out.println(s);
+        }
+      } catch (FileNotFoundException e) {
+        e.printStackTrace();
+      }
+    }
+
+    public void printEdgeOnFile(String path){
+      try (PrintWriter out = new PrintWriter(path)) {
+        for(String s: this.edges){
+          out.println(s);
+        }
+      } catch (FileNotFoundException e) {
+        e.printStackTrace();
+      }
     }
 
   }
@@ -119,38 +141,84 @@ public class CG {
           }
         }
       }
-
     }
-
     return data;
   }
 
-  // TODO: implement
-  public String genCGLib(){
-    String nodeXfeatures = "";
-    String edges = "";
+  // IF uniqueNodePackage, all the calls to a package lead to the same node (per package), otherwise each call lead to
+  //  (potentially) different nodes (because also 2 calls to the same package may call different functions/methods).
+  //  When !uniqueNodePackage, the calls try to be merged by comparing 'invokeStmt'.
+  //  NB: even if the package has more nodes, all the nodes of the same package share the same features array
+  public CGData genCGLib(Integer uniqueIndex, boolean uniqueNodePackage){
+    CGData data = new CGData();
+    String libFeatures = "";
+    HashMap<Integer, HashMap<String, Integer>> mapLibNode = new HashMap<>();
+
     for (Map.Entry<String, cPDG> entrycPDG : this.cPDGAvailable.entrySet()) {
-      nodeXfeatures += entrycPDG.getValue().getUniqueId() + ", " +
-              entrycPDG.getValue().getStmtFrequency().toString().replaceAll("\\[", "").replaceAll("]", "") + "\n";
+
+      if (libFeatures.equals("")) {// first loop, to check num of JimpleStmt and then place libIndex at the end of features array
+        for (int i = 0; i < entrycPDG.getValue().getStmtFrequency().size(); i++){
+          libFeatures += "0, ";
+        }
+      }
+
+      data.addNode(entrycPDG.getValue().getUniqueId() + ", " +
+              entrycPDG.getValue().getStmtFrequency().toString().replaceAll("\\[", "").replaceAll("]", "")
+              + ", 0"); // add one index to mark node as notLib
       if (this.sdg.get(entrycPDG.getValue())!=null){
         Set<CGEdge> tempCGEdgeSet = this.sdg.get(entrycPDG.getValue());
         for ( CGEdge edge : tempCGEdgeSet) {
-          if ( edge.getDest() == null  && edge.isLib())
-            ; // Library Node, not created yet...
+          if ( edge.getDest() == null  && edge.isLib()){
+
+            String invokeStmt = edge.getInvokeStmt();
+            Integer indexLib = edge.getLibIndex();
+            Integer indexNode = null;
+
+            if (uniqueNodePackage){
+              if (mapLibNode.containsKey(indexLib))
+                indexNode = mapLibNode.get(indexLib).get("unique");
+              else {
+                HashMap<String, Integer> newPackageNode = new HashMap<>();
+                newPackageNode.put("unique", uniqueIndex);
+                mapLibNode.put(indexLib, newPackageNode);
+                indexNode = uniqueIndex;
+                data.addNode(indexNode + ", " + libFeatures + indexLib); // add one value for lib index
+                uniqueIndex++;
+              }
+            } else {
+              if (mapLibNode.containsKey(indexLib)) {
+                if (mapLibNode.get(indexLib).containsKey(invokeStmt))
+                  indexNode = mapLibNode.get(indexLib).get(invokeStmt);
+                else {
+                  mapLibNode.get(indexLib).put(invokeStmt, uniqueIndex);
+                  indexNode = uniqueIndex;
+                  data.addNode(indexNode + ", " + libFeatures + indexLib); // add one value for lib index
+                  uniqueIndex++;
+                }
+              } else {
+                HashMap<String, Integer> newPackageNode = new HashMap<>();
+                newPackageNode.put(invokeStmt, uniqueIndex);
+                mapLibNode.put(indexLib, newPackageNode);
+                indexNode = uniqueIndex;
+                uniqueIndex++;
+              }
+            }
+
+            data.addEdge(edge.getSource().getUniqueId() + ", " + indexNode);
+
+          }
           else if (edge.getDest() == null  && !edge.isLib() ){
             ; // Do nothing, because the dest has no active body, thus no features set and no node
           } else if (edge.getDest() != null){
-            edges += edge.getSource().getUniqueId() + ", " + edge.getDest().getUniqueId() + "\n";
+            data.addEdge(edge.getSource().getUniqueId() + ", " + edge.getDest().getUniqueId());
           } else {
             System.err.println("Unexpected Edge null but not lib... exiting!");
             System.exit(1);
           }
         }
       }
-
     }
-
-    return nodeXfeatures + "\n\n" + edges;
+    return data;
   }
 
   // If 'invoke' is library, return index of library Arraylist, otherwise 0

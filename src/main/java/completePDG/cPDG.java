@@ -118,10 +118,10 @@ public class cPDG {
 
   private void createcPDG(boolean partial) {
     if (partial) {
-      //createCFGPartialnotREC();
-      for (int i = 0; i < this.unitGraph.getHeads().size(); i++) {
-        createCFGPartial(this.unitGraph.getHeads().get(i));
-      }
+      createCFGPartialnotREC();
+      //for (int i = 0; i < this.unitGraph.getHeads().size(); i++) {
+      //  createCFGPartial(this.unitGraph.getHeads().get(i));
+      //}
       this.builtPartial = true;
     } else {
       for (int i = 0; i < this.unitGraph.getHeads().size(); i++) {

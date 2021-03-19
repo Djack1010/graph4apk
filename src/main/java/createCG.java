@@ -9,6 +9,8 @@ import soot.toolkits.graph.TrapUnitGraph;
 import soot.toolkits.graph.UnitGraph;
 
 import java.io.*;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.*;
 
 public class createCG {
@@ -25,7 +27,7 @@ public class createCG {
     public static String SDGFileName = null;
     public static String SDGLabel = null;
     public static String rootPath = "/home/djack/local_repositories/graph4apk";
-    public static String outputPath = "/home/djack/local_repositories/graph4apk";
+    public static String outputPath = "/home/djack/local_repositories/graph4apk/results";
     public static boolean genJimple = false;
     public settings() {}
     public void printSettings(){
@@ -213,46 +215,50 @@ public class createCG {
 
     }));
 
+    long start = System.currentTimeMillis();
     //RUN SOOT
     soot.Main.main(sootArgs);
 
     String result = cg.matchInvokecPDG();
     System.out.println(result);
 
-    checkAndCreateFolder(runningSettings.outputPath + "/stats");
-    try (PrintWriter out = new PrintWriter(runningSettings.outputPath + "/stats/" + runningSettings.SDGFileName + ".txt")) {
-      out.println(result);
-      System.out.println("Result print on file '" + runningSettings.outputPath + "/stats/"
-        + runningSettings.SDGFileName + ".txt'");
-    } catch (FileNotFoundException e) {
-      System.err.println(e);
-      System.exit(1);
-    }
-
     CGData cg_data = cg.genCG();
+
+    CGData cg_data_lib_diffPackage = cg.genCGLib(uniqueIndex, false);
+    CGData cg_data_lib_uniquePackage = cg.genCGLib(uniqueIndex, true);
 
     checkAndCreateFolder(runningSettings.outputPath + "/graphs/CG/" + runningSettings.SDGLabel + "/" +
             runningSettings.SDGFileName );
-    try (PrintWriter out = new PrintWriter(runningSettings.outputPath + "/graphs/CG/" +
-            runningSettings.SDGLabel + "/" + runningSettings.SDGFileName + "/nodes.txt")) {
-      out.println(cg_data.nodeXfeatures);
-      System.out.println("CG print on file '" + runningSettings.outputPath + "/graphs/CG/" +
-              runningSettings.SDGLabel + "/" + runningSettings.SDGFileName + "/nodes.txt'");
-    } catch (FileNotFoundException e) {
-      System.err.println(e);
-      System.exit(1);
-    }
-    try (PrintWriter out = new PrintWriter(runningSettings.outputPath + "/graphs/CG/" +
-            runningSettings.SDGLabel + "/" + runningSettings.SDGFileName + "/edges.txt")) {
-      out.println(cg_data.edges);
-      System.out.println("CG print on file '" + runningSettings.outputPath + "/graphs/CG/" +
-              runningSettings.SDGLabel + "/" + runningSettings.SDGFileName + "/edges.txt'");
-    } catch (FileNotFoundException e) {
-      System.err.println(e);
-      System.exit(1);
-    }
 
-    //sdg.completeAnalysis();
+    cg_data.printNodeOnFile(runningSettings.outputPath + "/graphs/CG/" + runningSettings.SDGLabel + "/" +
+            runningSettings.SDGFileName + "/nodes.txt");
+    cg_data_lib_uniquePackage.printNodeOnFile(runningSettings.outputPath + "/graphs/CG/" + runningSettings.SDGLabel + "/" +
+            runningSettings.SDGFileName + "/nodesPack.txt");
+    cg_data_lib_diffPackage.printNodeOnFile(runningSettings.outputPath + "/graphs/CG/" + runningSettings.SDGLabel + "/" +
+            runningSettings.SDGFileName + "/nodesPackFunc.txt");
+
+    cg_data.printEdgeOnFile(runningSettings.outputPath + "/graphs/CG/" + runningSettings.SDGLabel + "/" +
+            runningSettings.SDGFileName + "/edges.txt");
+    cg_data_lib_uniquePackage.printEdgeOnFile(runningSettings.outputPath + "/graphs/CG/" + runningSettings.SDGLabel + "/" +
+            runningSettings.SDGFileName + "/edgesPack.txt");
+    cg_data_lib_diffPackage.printEdgeOnFile(runningSettings.outputPath + "/graphs/CG/" + runningSettings.SDGLabel + "/" +
+            runningSettings.SDGFileName + "/edgesPackFunc.txt");
+
+    long end = System.currentTimeMillis();
+
+    NumberFormat formatter = new DecimalFormat("#0.00000");
+    result += "SOOT and genCG execution time is " + formatter.format((end - start) / 1000d) + " seconds\n";
+    result += "CG print on files in '" + runningSettings.outputPath + "/graphs/CG/" + runningSettings.SDGLabel + "/" +
+            runningSettings.SDGFileName;
+
+    checkAndCreateFolder(runningSettings.outputPath + "/stats");
+
+    try (PrintWriter out = new PrintWriter(runningSettings.outputPath + "/stats/" + runningSettings.SDGFileName + ".txt")) {
+      out.println(result);
+      System.out.println("Result print on file '" + runningSettings.outputPath + "/stats/" + runningSettings.SDGFileName + ".txt'");
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
 
   }
 

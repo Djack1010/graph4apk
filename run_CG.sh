@@ -184,6 +184,13 @@ else
       if [ "${MULTITHREADS}" ]; then
         UPDATE=1
         DYNAMICRUN="-process-dir $apkfile -SDGFileName $filename -SDGLabel $family -silent ${TARGETMETHOD} ${GENCCS} ${GENJIMPLE} ${SUBGRAPHMETHODS}"
+
+        # Skip analysis if folder exists (assuming, created in a previous run)
+        if [ -f "./results/stats/${filename}.txt" ]; then
+          FNOW=$(($FNOW+1))
+          continue
+        fi
+
         while [ "$(jobs | grep "Running" | wc -l)" -ge $bt "${MULTITHREADS}" ]; do
           progrBar $FNOW $FTOT
           sleep $UPDATE
