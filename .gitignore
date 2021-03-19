@@ -1,3 +1,7 @@
+# DB
+apk_db*/
+!apk_db/
+
 # Compiled class file
 *.class
 target/
