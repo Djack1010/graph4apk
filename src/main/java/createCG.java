@@ -217,7 +217,14 @@ public class createCG {
 
     long start = System.currentTimeMillis();
     //RUN SOOT
-    soot.Main.main(sootArgs);
+    try {
+      soot.Main.main(sootArgs);
+    } catch (soot.CompilationDeathException e){
+      System.err.println("Soot error ('CompilationDeathException'), cannot proceed with " +
+              runningSettings.SDGFileName + ", exiting...");
+      // e.printStackTrace();
+      System.exit(1);
+    }
 
     String result = cg.matchInvokecPDG();
     System.out.println(result);
