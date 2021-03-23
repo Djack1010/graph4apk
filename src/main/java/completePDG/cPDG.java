@@ -60,6 +60,22 @@ public class cPDG {
 
   }
 
+  // Constructor for Utility nodes
+  public cPDG(String fname, String cname, int unId) {
+
+    this.unitGraph = null;
+    this.cPDGFullName = fname;
+    this.cPDGClassName = cname;
+    this.cPDGMethodName = null;
+    this.uniqueId=unId;
+    this.cPDGNodes = new TreeMap<>();
+    this.visitedStmt = new HashSet<>();
+    this.invokeStmt = new HashMap<>();
+    this.frequencyStmt = new StmtMapFrequency();
+    this.builtPartial = true;
+
+  }
+
 
   private void initializeClass(UnitGraph cfg, String fname, String cname, String mname, int unId){
 

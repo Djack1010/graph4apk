@@ -38,6 +38,7 @@ function usage {
     echo "-apk <absolute_path_to_apk OR relative_path_from_APK_FOLDER>"
     echo "-apkFolder <absolute_path_to_a_folder_of_apk>"
     echo "-genJimple [generate Jimple code in <project_folder>/results/code/JimpleCode/]"
+    echo "-connectGraph [for CG, create utility nodes/edges to connect methods with belonging classes]"
     exit
 }
 
@@ -105,6 +106,9 @@ else
         elif [[ "${myArray[$n]}" == "-genJimple" ]]; then
             GENJIMPLE="-genJimple"
             n=$(($n+1))
+        elif [[ "${myArray[$n]}" == "-connectGraph" ]]; then
+            CONNECTGRAPH="-connectGraph"
+            n=$(($n+1))
         elif [[ "${myArray[$n]}" == "-compile" ]]; then
             COMPILE="TRUE"
             n=$(($n+1))
@@ -159,7 +163,7 @@ if [ "${SINGLEAPK}" ]; then
   filename=$(echo ${SINGLEAPK##*/} | cut -d'.' -f 1)
   start=$(date +%s)
   echo "-----  ANALYZING $SINGLEAPK  -----"
-  DYNAMICRUN="-process-dir $SINGLEAPK -SDGFileName $filename ${TARGETMETHOD} ${GENCCS} ${GENJIMPLE} ${SUBGRAPHMETHODS}"
+  DYNAMICRUN="-process-dir $SINGLEAPK -SDGFileName $filename ${CONNECTGRAPH} ${TARGETMETHOD} ${GENCCS} ${GENJIMPLE} ${SUBGRAPHMETHODS}"
   echo "RUNNING OPTION: ${DYNAMICRUN}"
   eval "$RUN $DYNAMICRUN"
   end=$(date +%s)
@@ -183,7 +187,7 @@ else
       fi
       if [ "${MULTITHREADS}" ]; then
         UPDATE=1
-        DYNAMICRUN="-process-dir $apkfile -SDGFileName $filename -SDGLabel $family -silent ${TARGETMETHOD} ${GENCCS} ${GENJIMPLE} ${SUBGRAPHMETHODS}"
+        DYNAMICRUN="-process-dir $apkfile -SDGFileName $filename -SDGLabel $family ${CONNECTGRAPH} -silent ${TARGETMETHOD} ${GENCCS} ${GENJIMPLE} ${SUBGRAPHMETHODS}"
 
         # Skip analysis if folder exists (assuming, created in a previous run)
         if [ -f "./results/stats/${filename}.txt" ]; then
@@ -200,7 +204,7 @@ else
       else
         start=$(date +%s)
         echo "-----  ANALYZING $apkfile  -----"
-        DYNAMICRUN="-process-dir $apkfile -SDGFileName $filename -SDGLabel $family ${TARGETMETHOD} ${GENCCS} ${GENJIMPLE} ${SUBGRAPHMETHODS}"
+        DYNAMICRUN="-process-dir $apkfile -SDGFileName $filename -SDGLabel $family ${CONNECTGRAPH} ${TARGETMETHOD} ${GENCCS} ${GENJIMPLE} ${SUBGRAPHMETHODS}"
         echo "RUNNING OPTION: ${DYNAMICRUN}"
         eval "$RUN $DYNAMICRUN"
         end=$(date +%s)

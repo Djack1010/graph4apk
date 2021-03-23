@@ -17,9 +17,12 @@ public class CG {
   private Set<String> notActiveBodycPDG;
   private Set<String> failedPDG;
   private Map<cPDG, Set<CGEdge>> sdg;
+  private Map<cPDG, Set<CGEdge>> utilityEdges;
   private ArrayList<String> libraries;
+  private cPDG rootNode;
 
   public CG() {
+    this.rootNode = null;
     this.cPDGAvailable = new HashMap<>();
     this.notActiveBodycPDG = new HashSet<>();
     this.failedPDG = new HashSet<>();
@@ -37,8 +40,28 @@ public class CG {
     );
   }
 
+  public void initConnectedGraph(){
+    this.rootNode = new cPDG("ROOT", null, 0);
+    this.cPDGAvailable.put("ROOT", this.rootNode);
+    this.utilityEdges = new HashMap<>();
+  }
+
+  // IF return null, rootNode not set, thus not Connected Graph
+  public cPDG getRootNode() { return this.rootNode; }
+
   public void addcPDG(cPDG cpdg) {
     this.cPDGAvailable.put(cpdg.getFullName(), cpdg);
+  }
+
+  public void addUtilityEdge(cPDG source, cPDG dest) {
+    Set<CGEdge> tempCGEdgeSet;
+    if (this.utilityEdges.containsKey(source))
+      tempCGEdgeSet = this.utilityEdges.get(source);
+    else {
+      tempCGEdgeSet = new HashSet<CGEdge>();
+      this.utilityEdges.put(source, tempCGEdgeSet);
+    }
+    tempCGEdgeSet.add(new CGEdge(source, dest));
   }
 
   public void addNotActiveBody(String name) {
@@ -57,8 +80,13 @@ public class CG {
       this.nodeXfeatures.add(node_features);
     }
 
-    public void addEdge(String edge){
-      this.edges.add(edge);
+    public void addEdge(CGEdge edge, String idDest){
+      String e = edge.getSource().getUniqueId() + ", " + idDest;
+      if (getRootNode() != null) {
+        String l = edge.getTypeEdge() == -1 ? "1" : "0";
+        e += ", " + l;
+      }
+      this.edges.add(e);
     }
 
     public void printNodeOnFile(String path){
@@ -134,12 +162,16 @@ public class CG {
           else if (edge.getDest() == null  && !edge.isLib() ){
             ; // Do nothing, because the dest has no active body, thus no features set and no node
           } else if (edge.getDest() != null){
-            data.addEdge(edge.getSource().getUniqueId() + ", " + edge.getDest().getUniqueId());
+            data.addEdge(edge, String.valueOf(edge.getDest().getUniqueId()));
           } else {
             System.err.println("Unexpected Edge null but not lib... exiting!");
             System.exit(1);
           }
         }
+      } else if (this.getRootNode() != null && this.utilityEdges.get(entrycPDG.getValue())!=null){
+        Set<CGEdge> tempCGEdgeSet = this.utilityEdges.get(entrycPDG.getValue());
+        for ( CGEdge edge : tempCGEdgeSet)
+          data.addEdge(edge, String.valueOf(edge.getDest().getUniqueId()));
       }
     }
     return data;
@@ -171,7 +203,7 @@ public class CG {
           if ( edge.getDest() == null  && edge.isLib()){
 
             String invokeStmt = edge.getInvokeStmt();
-            Integer indexLib = edge.getLibIndex();
+            Integer indexLib = edge.getTypeEdge();
             Integer indexNode = null;
 
             if (uniqueNodePackage){
@@ -204,18 +236,22 @@ public class CG {
               }
             }
 
-            data.addEdge(edge.getSource().getUniqueId() + ", " + indexNode);
+            data.addEdge(edge, String.valueOf(indexNode));
 
           }
           else if (edge.getDest() == null  && !edge.isLib() ){
             ; // Do nothing, because the dest has no active body, thus no features set and no node
           } else if (edge.getDest() != null){
-            data.addEdge(edge.getSource().getUniqueId() + ", " + edge.getDest().getUniqueId());
+            data.addEdge(edge, String.valueOf(edge.getDest().getUniqueId()));
           } else {
             System.err.println("Unexpected Edge null but not lib... exiting!");
             System.exit(1);
           }
         }
+      } else if (this.getRootNode() != null && this.utilityEdges.get(entrycPDG.getValue())!=null){
+        Set<CGEdge> tempCGEdgeSet = this.utilityEdges.get(entrycPDG.getValue());
+        for ( CGEdge edge : tempCGEdgeSet)
+          data.addEdge(edge, String.valueOf(edge.getDest().getUniqueId()));
       }
     }
     return data;
@@ -230,19 +266,6 @@ public class CG {
     return 0;
   }
 
-  public void completeAnalysis(){
-    int base = 0;
-    String name = "";
-    for (Map.Entry<String, cPDG> entrycPDG : this.cPDGAvailable.entrySet()) {
-      int temp = getConnectedMethod(entrycPDG.getKey(), new StringBuilder());
-      if (temp > base){
-        name = entrycPDG.getKey();
-        base = temp;
-      }
-    }
-    System.out.println("The winner is '" + name + "' with " + String.valueOf(base) + " levels");
-  }
-
   public int getConnectedMethod(String targetMethod, StringBuilder toPrint){
     if (targetMethod == null)
       return 0;
@@ -252,40 +275,6 @@ public class CG {
     } else {
       System.err.println(targetMethod + " NOT FOUND!");
       return 0;
-    }
-  }
-
-  public int getConnectedMethod_PARSER(String targ, StringBuilder toPrint){
-    if (targ == null)
-      return 0;
-    String targetMethod = targ.toUpperCase();
-    ArrayList<String> matched = new ArrayList<>();
-    int matchedValue = 100000;
-    for (Map.Entry<String, cPDG> entrycPDG : this.cPDGAvailable.entrySet()) {
-      String toEvaluate = entrycPDG.getKey().replaceAll("\\.","").replaceAll("<","")
-        .replaceAll(">","").replaceAll("\\(","").replaceAll("\\)","").toUpperCase();
-      if (targetMethod.contains(toEvaluate.split("_")[0])) {
-        String restTarget = targetMethod.split(toEvaluate.split("_")[0])[1];
-        if ( restTarget.contains(toEvaluate.split("_")[1]) ) {
-          int newMatchedVal = restTarget.length()-toEvaluate.split("_")[1].length();
-          if ( newMatchedVal < matchedValue) {
-            matchedValue = newMatchedVal;
-            matched.clear();
-            matched.add(entrycPDG.getKey());
-          } else if ( newMatchedVal == matchedValue)
-            matched.add(entrycPDG.getKey());
-        }
-      }
-    }
-    if ( matched.isEmpty() ) {
-      toPrint.append(" NOT FOUND!");
-      return 0;
-    } else {
-      for( String toLoop : matched) {
-        toPrint.append(toLoop + "\n");
-        getLinkedMethods(this.cPDGAvailable.get(toLoop), 0, toPrint);
-      }
-      return 1;
     }
   }
 
@@ -327,50 +316,6 @@ public class CG {
     return toReturn;
   }
 
-  public subGraph getSubGraph(cPDG target1, cPDG target2) {
-    this.cleanVisit();
-    subGraph subgraph = new subGraph(target1);
-    RECgetSubGraph(target1, target2, subgraph);
-    if (subgraph.getTarget() == null){
-      this.cleanVisit();
-      subGraph subgraph2 = new subGraph(target2);
-      RECgetSubGraph(target2, target1, subgraph2);
-      return subgraph2;
-    } else
-      return subgraph;
-  }
-
-  private void RECgetSubGraph(cPDG target1, cPDG target2, subGraph subgraph){
-    Set<CGEdge> tempCGEdgeSet = this.sdg.get(target1);
-    if (subgraph.target == null)
-      subgraph.addPathID(target1.getUniqueId());
-    Set<cPDG> toLoop = new HashSet<>();
-    if ( tempCGEdgeSet != null) {
-      for (CGEdge edge : tempCGEdgeSet) {
-        if (!edge.isVisited()) {
-          edge.setVisited(true);
-          subgraph.addSDGEdge(edge);
-          subgraph.addcPDGNode(edge.getSource());
-          if (edge.getDest() != null) {
-            toLoop.add(edge.getDest());
-            if (edge.getDest().equals(target2)){
-              subgraph.setTarget(edge.getDest());
-              subgraph.addPathID(edge.getDest().getUniqueId());
-            }
-          }
-        }
-      }
-      if (toLoop.isEmpty())
-        return;
-      else{
-        for(cPDG c: toLoop){
-          RECgetSubGraph(c, target2, subgraph);
-        }
-      }
-    }
-    if (subgraph.target == null)
-      subgraph.removePathID();
-  }
 
   private void cleanVisit(){
     for (Map.Entry<cPDG, Set<CGEdge>> entrySDG : this.sdg.entrySet()) {
@@ -382,118 +327,5 @@ public class CG {
     }
   }
 
-  public class subGraph{
-    cPDG startNode;
-    cPDG target;
-    List<Integer> path;
-    Set<CGEdge> subGraphEdge;
-    Set<cPDG> subGraphNode;
-
-    public subGraph(cPDG rootNode){
-      this.startNode = rootNode;
-      this.target = null;
-      this.subGraphEdge = new HashSet<CGEdge>();
-      this.subGraphNode = new HashSet<cPDG>();
-      this.path = new ArrayList<>();
-    }
-
-    public void addSDGEdge(CGEdge edge) { this.subGraphEdge.add(edge); }
-    public void addcPDGNode(cPDG node) { this.subGraphNode.add(node); }
-
-    public void setTarget(cPDG cpdg) { this.target = cpdg; }
-
-    public cPDG getStartNode() {
-      return startNode;
-    }
-
-    public cPDG getTarget() {
-      return target;
-    }
-
-    public Set<CGEdge> getSubGraphEdge() {
-      return subGraphEdge;
-    }
-    public Set<cPDG> getSubGraphNode() {
-      return subGraphNode;
-    }
-
-    public void addPathID(int i) { this.path.add(i); }
-    public void removePathID() { this.path.remove(this.path.size()-1); }
-
-    public String genCCS(){
-      String startingProc = "proc M0=";
-      boolean init = true;
-      String toReturn = "";
-      for (cPDG node : this.subGraphNode) {
-
-        if (init)
-          startingProc = startingProc + "M" + node.getUniqueId();
-        else
-          startingProc = startingProc + "+M" + node.getUniqueId();
-
-        toReturn = toReturn + "proc M" + node.getUniqueId() + "=";
-        init = true;
-        Set<CGEdge> tempCGEdgeSet = new HashSet<CGEdge>();
-        tempCGEdgeSet = sdg.get(node);
-        for (CGEdge edge : tempCGEdgeSet) {
-          if (init)
-            init = false;
-          else
-            toReturn = toReturn + "+";
-
-          if (edge.getDest() == null && edge.isLib())
-            toReturn = toReturn + this.cleanInvokeStmt(edge.getInvokeStmt(), 1) + ".L"
-              + this.cleanInvokeStmt(edge.getInvokeStmt(), 0) + ".nil";
-          else if (edge.getDest() == null && !edge.isLib()) {
-            toReturn = toReturn + this.cleanInvokeStmt(edge.getInvokeStmt(), 1) + ".N"
-              + this.cleanInvokeStmt(edge.getInvokeStmt(), 0) + ".nil";
-          } else if (edge.getDest() != null) {
-            toReturn = toReturn + this.cleanInvokeStmt(edge.getInvokeStmt(), 1) + ".M" + edge.getDest().getUniqueId();
-          }
-
-        }
-
-        toReturn = toReturn + "\n\n";
-      }
-
-
-      startingProc = startingProc + "\n\n";
-      return startingProc + toReturn;
-    }
-
-    public void printInfo(){
-      System.out.println("STARTER: " + this.startNode.getFullName());
-      if (this.target != null) {
-        System.out.println("TARGET: " + this.target.getFullName());
-        System.out.print("PATH:");
-        for(Integer n : this.path){
-          System.out.print(" " + n + " ->");
-        }
-        System.out.println();
-      } else {
-        System.out.println("TARGET: NOT FOUND!");
-        return;
-      }
-      for(CGEdge e : this.subGraphEdge){
-        if(e.getDest() != null)
-          System.out.println("EDGE from '" + e.getSource().getUniqueId() + "' to '" + e.getDest().getUniqueId() + "'");
-        else if (e.isLib())
-          System.out.println("EDGE from '" + e.getSource().getUniqueId() + "' to LIB");
-        else
-          System.out.println("EDGE from '" + e.getSource().getUniqueId() + "' to NOT FOUND");
-        System.out.println("\tCalling " + e.getInvokeStmt().split("\\(")[0]
-          + " and passing (" + e.getInvokeStmt().split("\\(")[1]);
-      }
-    }
-
-    private String cleanInvokeStmt(String stmt, int n){
-      String base = stmt.split("\\(")[n].replaceAll("\\)", "").replaceAll("\\.", "")
-        .replaceAll("<", "").replaceAll(">", "").replaceAll(",", ".");
-      if(base.isEmpty())
-        return "noArgs";
-      else
-        return base;
-    }
-  }
 
 }

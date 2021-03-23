@@ -9,8 +9,8 @@ public class CGEdge {
   private Unit unitSource;
   private String invokeStmt;
   private cPDG dest;
-  // 0 not lib, otherwise index of lib describe in an ArrayList of CG.java
-  private Integer lib;
+  // -1 special edge (link methods in classes), 0 standard edge, >0 index of lib describe in an ArrayList of CG.java
+  private Integer typeEdge;
   private boolean visited = false;
 
   public CGEdge(cPDG source, Unit unitSource, String invokeStmt, cPDG dest) {
@@ -18,7 +18,7 @@ public class CGEdge {
     this.unitSource = unitSource;
     this.invokeStmt = invokeStmt;
     this.dest = dest;
-    this.lib = 0;
+    this.typeEdge = 0;
   }
 
   public CGEdge(cPDG source, Unit unitSource, String invokeStmt, cPDG dest, Integer libIndex) {
@@ -26,7 +26,16 @@ public class CGEdge {
     this.unitSource = unitSource;
     this.invokeStmt = invokeStmt;
     this.dest = dest;
-    this.lib = libIndex;
+    this.typeEdge = libIndex;
+  }
+
+  // Constructor for utility edge
+  public CGEdge(cPDG source, cPDG dest) {
+    this.source = source;
+    this.unitSource = null;
+    this.invokeStmt = null;
+    this.dest = dest;
+    this.typeEdge = -1;
   }
 
   public cPDG getSource() {
@@ -46,10 +55,10 @@ public class CGEdge {
   }
 
   public boolean isLib() {
-    return this.lib != 0;
+    return this.typeEdge > 0;
   }
 
-  public Integer getLibIndex() { return this.lib; }
+  public Integer getTypeEdge() { return this.typeEdge; }
 
   public boolean isVisited() { return this.visited; }
   public void setVisited(boolean a) { this.visited = a; }

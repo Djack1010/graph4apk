@@ -29,16 +29,18 @@ public class createCG {
     public static String rootPath = "/home/djack/local_repositories/graph4apk";
     public static String outputPath = "/home/djack/local_repositories/graph4apk/results";
     public static boolean genJimple = false;
+    public static boolean connectGraph = true;
     public settings() {}
     public void printSettings(){
       System.out.println("SETTINGS FOR ANALYSIS:");
       System.out.println("ROOT PATH: " + this.rootPath);
       System.out.println("OUTPUT PATH: " + this.outputPath);
       System.out.println("GENERATE JIMPLE: " + this.genJimple);
+      System.out.println("CONNECT GRAPH: " + this.connectGraph);
     }
   }
 
-  private static int uniqueIndex=1;
+  private static int uniqueIndex=1; // 0 reserved for Utility node ROOT
   private static settings runningSettings = new settings();
 
   public static void main(String[] args) {
@@ -78,10 +80,9 @@ public class createCG {
           ":" + runningSettings.rootPath + "/src/main/resources/android-platforms/android-17/android-17-api.jar",
         "-android-jars",
         "" + runningSettings.rootPath + "/src/main/resources/android-platforms",
-        //"-process-dir",
-        //"" + runningSettings.rootPath + "/apk_db/OK/0ad370eab2ac647a932ad18fbb55d098.apk",
         "-process-dir",
-        "" + runningSettings.rootPath + "/apk_db_AMD/Airpush/0a1fc800465e64f9deaa063b81688509.apk"
+        "" + runningSettings.rootPath + "/apk_db/OK/0ad370eab2ac647a932ad18fbb55d098.apk",
+        //"" + runningSettings.rootPath + "/apk_db_AMD/Airpush/0a1fc800465e64f9deaa063b81688509.apk"
       };
     } else
       sootArgs = handleArgs(args);
@@ -95,6 +96,9 @@ public class createCG {
       System.err.println("ERROR! Set the project path, exiting...");
       System.exit(1);
     }
+
+    if (runningSettings.connectGraph)
+      cg.initConnectedGraph();
 
     //prefer Android APK files// -src-prec apk
     Options.v().set_src_prec(Options.src_prec_apk);
@@ -129,7 +133,14 @@ public class createCG {
           else
             numTestClas++;
 
-          //System.out.println("\tStarting Transformation for class " + cl.getName());
+          cPDG classNode = null;
+          if (cg.getRootNode() != null) {
+            // Create Utility node for this class and link to Utility node ROOT
+            classNode = new cPDG(cl.getName(), cl.getName(), uniqueIndex);
+            cg.addUtilityEdge(cg.getRootNode(), classNode);
+            cg.addcPDG(classNode);
+            uniqueIndex++;
+          }
 
           Iterator<SootMethod> methodIt = cl.getMethods().iterator();
           while (methodIt.hasNext()) {
@@ -202,8 +213,11 @@ public class createCG {
             cPDG cPDG = new cPDG(cfg, fileName, cl.getName(), m.getName(), uniqueIndex, true);
             uniqueIndex++;
 
-            if (cPDG.isIndexable())
+            if (cPDG.isIndexable()) {
               cg.addcPDG(cPDG);
+              if (classNode != null)
+                cg.addUtilityEdge(classNode, cPDG);
+            }
             else
               cg.addFailedPDG(cPDG);
 
@@ -237,19 +251,20 @@ public class createCG {
     checkAndCreateFolder(runningSettings.outputPath + "/graphs/CG/" + runningSettings.SDGLabel + "/" +
             runningSettings.SDGFileName );
 
+    String connectedGraph = runningSettings.connectGraph ? "_connect" : "";
     cg_data.printNodeOnFile(runningSettings.outputPath + "/graphs/CG/" + runningSettings.SDGLabel + "/" +
-            runningSettings.SDGFileName + "/nodes.txt");
+            runningSettings.SDGFileName + "/nodes" + connectedGraph + ".txt");
     cg_data_lib_uniquePackage.printNodeOnFile(runningSettings.outputPath + "/graphs/CG/" + runningSettings.SDGLabel + "/" +
-            runningSettings.SDGFileName + "/nodesPack.txt");
+            runningSettings.SDGFileName + "/nodesPack" + connectedGraph + ".txt");
     cg_data_lib_diffPackage.printNodeOnFile(runningSettings.outputPath + "/graphs/CG/" + runningSettings.SDGLabel + "/" +
-            runningSettings.SDGFileName + "/nodesPackFunc.txt");
+            runningSettings.SDGFileName + "/nodesPackFunc" + connectedGraph + ".txt");
 
     cg_data.printEdgeOnFile(runningSettings.outputPath + "/graphs/CG/" + runningSettings.SDGLabel + "/" +
-            runningSettings.SDGFileName + "/edges.txt");
+            runningSettings.SDGFileName + "/edges" + connectedGraph + ".txt");
     cg_data_lib_uniquePackage.printEdgeOnFile(runningSettings.outputPath + "/graphs/CG/" + runningSettings.SDGLabel + "/" +
-            runningSettings.SDGFileName + "/edgesPack.txt");
+            runningSettings.SDGFileName + "/edgesPack" + connectedGraph + ".txt");
     cg_data_lib_diffPackage.printEdgeOnFile(runningSettings.outputPath + "/graphs/CG/" + runningSettings.SDGLabel + "/" +
-            runningSettings.SDGFileName + "/edgesPackFunc.txt");
+            runningSettings.SDGFileName + "/edgesPackFunc" + connectedGraph + ".txt");
 
     long end = System.currentTimeMillis();
 
@@ -326,6 +341,9 @@ public class createCG {
           break;
         case "-genJimple":
           runningSettings.genJimple=true;
+          break;
+        case "-connectGraph":
+          runningSettings.connectGraph=true;
           break;
         case "-silent":
           PrintStream dummyStream = new PrintStream(new OutputStream(){
