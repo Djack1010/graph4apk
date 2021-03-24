@@ -160,7 +160,8 @@ echo "STARTING SCRIPT run.sh"
 echo $RUN
 
 if [ "${SINGLEAPK}" ]; then
-  filename=$(echo ${SINGLEAPK##*/} | cut -d'.' -f 1)
+  filename=$(echo ${apkfile##*/}) # filename without path
+  filename=$(echo ${filename%.*}) # filename without format
   start=$(date +%s)
   echo "-----  ANALYZING $SINGLEAPK  -----"
   DYNAMICRUN="-process-dir $SINGLEAPK -SDGFileName $filename ${CONNECTGRAPH} ${TARGETMETHOD} ${GENCCS} ${GENJIMPLE} ${SUBGRAPHMETHODS}"
@@ -180,7 +181,8 @@ else
   echo ""
   echo ""
   for apkfile in $APK_FOLDER/**/*.apk; do
-      filename=$(echo ${apkfile##*/} | cut -d'.' -f 1)
+      filename=$(echo ${apkfile##*/}) # filename without path
+      filename=$(echo ${filename%.*}) # filename without format
       family=$(basename $(dirname $apkfile))
       if [[ "$family" == "$APK_FOLDER" ]]; then
         family="NO_LABEL"
