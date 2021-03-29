@@ -29,7 +29,7 @@ public class createCG {
     public static String rootPath = "/home/djack/local_repositories/graph4apk";
     public static String outputPath = "/home/djack/local_repositories/graph4apk/results";
     public static boolean genJimple = false;
-    public static boolean connectGraph = true;
+    public static boolean connectGraph = false;
     public settings() {}
     public void printSettings(){
       System.out.println("SETTINGS FOR ANALYSIS:");
