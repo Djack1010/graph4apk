@@ -1,6 +1,8 @@
 # graph4apk
 
-The tool graph4apk implements analysis for generating graphs from apk files. The tool can generate either a (i.) PDGs (Program Dependence Graphs) for each method, (ii.) basic version of an SDG (System Dependence Graph, connecting all the PDGs together through their call statements) or (iii.) some variations of a CGs (Call Graphs). It outputs the Jimple code and the graphs in .dot, .txt or also CCS format, for formal methods analyses. It is based on the Soot Framework.
+The tool graph4apk implements analysis for generating graphs from apk files. The tool can generate either a (i.) PDGs (Program Dependence Graphs) for each method, (ii.) basic version of an SDG (System Dependence Graph, connecting all the PDGs together through their call statements) or (iii.) some variations of a CGs (Call Graphs). 
+It outputs the Jimple code and the graphs in .dot, .txt or also CCS format, for formal methods analyses. It is based on the Soot Framework.
+
 The tool is used for performing experiments on graphs, It was not meant to be a stand-alone working product and still misses code and documentation to be adopted in larger projects. Nevertheless, it could be a good starting point for similar analysis (See the script `run.sh` and `run_CG.sh` for further details), and we strongly suggest communicating with the authors for further information, sending feedbacks or just inform them in which other projects this tool has been involved.
 
 ## Getting Started
